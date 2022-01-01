@@ -13,6 +13,7 @@ use argh::FromArgs;
 use geo::algorithm::bounding_rect::BoundingRect;
 use geo::algorithm::intersects::Intersects;
 use image::{
+    imageops,
     DynamicImage,
     ImageBuffer,
     Pixel,
@@ -40,6 +41,10 @@ struct Args {
     /// only load label files that start with the specified value.
     #[argh(option, default = r#""".into()"#)]
     labels_prefix: String,
+
+    /// the size of the output image.
+    #[argh(option, default = "256")]
+    output_size: u32,
 }
 
 #[derive(Deserialize, Debug)]
@@ -80,6 +85,7 @@ fn process_feature(
     wkt: &str,
     source_image: &DynamicImage,
     output_path: &PathBuf,
+    output_size: u32,
 ) -> anyhow::Result<()> {
     let polygon_data: wkt::Wkt<f64> = wkt::Wkt::from_str(wkt).map_err(anyhow::Error::msg)?;
     let polygon = geo::Polygon::try_from(polygon_data)
@@ -97,16 +103,48 @@ fn process_feature(
     let top = bbox.min().y.max(0f64) as u32;
     let bottom = bbox.max().y.min(image_height as f64) as u32;
 
-    let mut feature_image: RgbImage = ImageBuffer::new(image_width, image_height);
+    let mut feature_image: RgbImage =
+        ImageBuffer::new(bbox.width().ceil() as u32, bbox.height().ceil() as u32);
+
     for x in left..right as u32 {
         for y in top..bottom {
             if polygon.intersects(&geo::Point::from((x as f64, y as f64))) {
-                feature_image.draw_pixel(x, y, Canvas::get_pixel(source_image, x, y).to_rgb());
+                feature_image.draw_pixel(
+                    x - left,
+                    y - top,
+                    Canvas::get_pixel(source_image, x, y).to_rgb(),
+                );
             }
         }
     }
 
-    feature_image.save(output_path)?;
+    let feature_image_width = feature_image.width() as f64;
+    let feature_image_height = feature_image.height() as f64;
+    let aspect_ratio = feature_image_width / feature_image_height;
+
+    let (scaled_width, scaled_height) = if aspect_ratio >= 1.0 {
+        (output_size as f64 / aspect_ratio, output_size as f64)
+    } else {
+        (output_size as f64, output_size as f64 * aspect_ratio)
+    };
+
+    let scaled_feature_image = imageops::resize(
+        &feature_image,
+        scaled_width as u32,
+        scaled_height as u32,
+        imageops::FilterType::Gaussian,
+    );
+
+    let mut output_image: RgbImage = ImageBuffer::new(output_size, output_size);
+
+    imageops::overlay(
+        &mut output_image,
+        &scaled_feature_image,
+        (output_size - scaled_width as u32) / 2,
+        (output_size - scaled_height as u32) / 2,
+    );
+
+    output_image.save(output_path)?;
 
     Ok(())
 }
@@ -120,9 +158,9 @@ fn extract_features_from_file(args: &Args, path: &PathBuf) -> anyhow::Result<()>
         path.file_name()
             .ok_or(anyhow::Error::msg("Could not determine file name"))?,
     )
-        .with_extension("")
-        .to_string_lossy()
-        .into_owned();
+    .with_extension("")
+    .to_string_lossy()
+    .into_owned();
 
     labels_data.features.xy.par_iter().for_each(|feature| {
         let output_path = Path::new(&args.output_dir).join(format!(
@@ -137,7 +175,8 @@ fn extract_features_from_file(args: &Args, path: &PathBuf) -> anyhow::Result<()>
             feature.properties.uid,
         );
 
-        if let Err(e) = process_feature(&feature.wkt, &source_image, &output_path) {
+        if let Err(e) = process_feature(&feature.wkt, &source_image, &output_path, args.output_size)
+        {
             log::error!(
                 "Processing of {:?}:{} failed: {:?}",
                 path,
@@ -176,7 +215,7 @@ fn main() -> anyhow::Result<()> {
 
     let n = label_files.len();
     label_files.par_iter().enumerate().for_each(|(i, f)| {
-        log::info!("Processing [{: >4}/{: >4}] {:?}", i, n, f);
+        log::info!("Processing [{: >4}/{: >4}] {:?}", i + 1, n, f);
         if let Err(e) = extract_features_from_file(&args, &f) {
             log::error!("Failed to process {:?}: {:?}", f, e);
         }
