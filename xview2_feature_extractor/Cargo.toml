@@ -1,0 +1,21 @@
+[package]
+name = "xview2_feature_extractor"
+authors = ["Rico A. Beti <rico.beti@silentbyte.com>"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.52"
+argh = "0.1.7"
+env_logger = "0.9.0"
+geo = "0.18.0"
+image = "0.23.14"
+imageproc = "0.22.0"
+log = "0.4.14"
+rayon = "1.5.1"
+serde = { version = "1.0.132", features = ["derive"] }
+serde_json = "1.0.73"
+wkt = "0.9.2"
+
+[profile.release]
+lto = true
