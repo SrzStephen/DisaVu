@@ -11,7 +11,7 @@ export interface ILatLng {
     lng: number;
 }
 
-export interface IDisaster {
+export interface IDisasterZone {
     id: Uuid;
     name: string;
     center: ILatLng;

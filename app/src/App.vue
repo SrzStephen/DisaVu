@@ -26,13 +26,13 @@
                       style="max-width: 300px"
                       item-value="id"
                       item-text="name"
-                      :items="app.disasters"
-                      :value="app.selectedDisaster"
-                      @change="onSelectDisaster" />
+                      :items="app.disasterZones"
+                      :value="app.selectedDisasterZone"
+                      @change="onSelectDisasterZone" />
 
             <v-btn icon
-                   :disabled="!app.selectedDisaster"
-                   @click="onSelectDisaster(app.selectedDisaster)">
+                   :disabled="!app.selectedDisasterZone"
+                   @click="onSelectDisasterZone(app.selectedDisasterZone)">
                 <v-icon>mdi-navigation-outline</v-icon>
             </v-btn>
 
@@ -78,15 +78,15 @@ import {
 import { getModule } from "vuex-module-decorators";
 import { AppModule } from "@/store/app";
 
-import { IDisaster } from "@/models";
+import { IDisasterZone } from "@/models";
 
 @Component
 export default class App extends Vue {
     private readonly app = getModule(AppModule);
 
-    private onSelectDisaster(disaster: IDisaster) {
+    private onSelectDisasterZone(disasterZone: IDisasterZone) {
         this.app.setSelectedDisaster(null);
-        this.app.setSelectedDisaster(disaster);
+        this.app.setSelectedDisaster(disasterZone);
     }
 
     mounted(): void {

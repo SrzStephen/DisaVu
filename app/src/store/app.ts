@@ -13,7 +13,7 @@ import {
 import store from "@/store";
 
 import {
-    IDisaster,
+    IDisasterZone,
     Uuid,
 } from "@/models";
 
@@ -26,7 +26,7 @@ VuexModuleDecoratorsConfig.rawError = true;
     name: "app",
 })
 export class AppModule extends VuexModule {
-    disasters: IDisaster[] = [
+    disasterZones: IDisasterZone[] = [
         {
             id: "886cc6b1-2951-4e7d-ad94-dedff09e22ef" as Uuid,
             name: "Hurricane Harvey",
@@ -44,7 +44,7 @@ export class AppModule extends VuexModule {
             },
         },
     ];
-    selectedDisaster: IDisaster | null = this.disasters[0];
+    selectedDisasterZone: IDisasterZone | null = this.disasterZones[0];
 
     @Mutation
     initializeStore(): void {
@@ -57,7 +57,7 @@ export class AppModule extends VuexModule {
     }
 
     @Mutation
-    setSelectedDisaster(disaster: IDisaster | null): void {
-        this.selectedDisaster = disaster;
+    setSelectedDisaster(disasterZone: IDisasterZone | null): void {
+        this.selectedDisasterZone = disasterZone;
     }
 }

@@ -25,7 +25,7 @@ import {
 import { getModule } from "vuex-module-decorators";
 import { AppModule } from "@/store/app";
 
-import { IDisaster } from "@/models";
+import { IDisasterZone } from "@/models";
 
 import Map, { IViewOptions } from "@/ui/components/Map.vue";
 import { NavigationGuardNext, Route } from "vue-router";
@@ -84,11 +84,11 @@ export default class HomeView extends Vue {
         this.updateRoute(this.map.getView());
     }
 
-    @Watch("app.selectedDisaster")
-    onDisasterSelected(disaster: IDisaster | null): void {
-        if(disaster) {
+    @Watch("app.selectedDisasterZone")
+    onDisasterZoneSelected(disasterZone: IDisasterZone | null): void {
+        if(disasterZone) {
             this.map.setView({
-                center: disaster.center,
+                center: disasterZone.center,
                 zoom: 10,
                 fly: true,
             });
