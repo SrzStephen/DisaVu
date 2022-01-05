@@ -21,6 +21,21 @@
 
             <v-spacer />
 
+            <v-select dense solo-inverted flat hide-details return-object
+                      class="mx-2"
+                      style="max-width: 300px"
+                      item-value="id"
+                      item-text="name"
+                      :items="app.disasters"
+                      :value="app.selectedDisaster"
+                      @change="onSelectDisaster" />
+
+            <v-btn icon
+                   :disabled="!app.selectedDisaster"
+                   @click="onSelectDisaster(app.selectedDisaster)">
+                <v-icon>mdi-navigation-outline</v-icon>
+            </v-btn>
+
             <v-menu left bottom
                     nudge-bottom="50"
                     :close-on-content-click="false">
@@ -63,9 +78,16 @@ import {
 import { getModule } from "vuex-module-decorators";
 import { AppModule } from "@/store/app";
 
+import { IDisaster } from "@/models";
+
 @Component
 export default class App extends Vue {
     private readonly app = getModule(AppModule);
+
+    private onSelectDisaster(disaster: IDisaster) {
+        this.app.setSelectedDisaster(null);
+        this.app.setSelectedDisaster(disaster);
+    }
 
     mounted(): void {
         this.app.initializeStore();

@@ -19,15 +19,12 @@ import {
     Vue,
 } from "vue-property-decorator";
 
-export interface LatLng {
-    lat: number;
-    lng: number;
-}
-
+import { ILatLng } from "@/models";
 
 export interface IViewOptions {
-    center: LatLng;
+    center: ILatLng;
     zoom: number;
+    fly?: boolean;
 }
 
 @Component
@@ -47,17 +44,26 @@ export default class Map extends Vue {
         const center = options.center || this.getView().center;
         const zoom = options.zoom || this.getView().zoom;
 
-        this.map.setView(center, zoom);
-    }
-
-
-    private onZoom() {
-        this.$emit("zoom");
-        this.$emit("view-change");
+        if(options.fly) {
+            this.map.flyTo(center, zoom);
+        } else {
+            this.map.setView(center, zoom);
+        }
     }
 
     private onMove() {
         this.$emit("move");
+    }
+
+    private onMoveEnd() {
+        this.$emit("view-change");
+    }
+
+    private onZoom() {
+        this.$emit("zoom");
+    }
+
+    private onZoomEnd() {
         this.$emit("view-change");
     }
 
@@ -68,13 +74,11 @@ export default class Map extends Vue {
             attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
         }).addTo(this.map);
 
-        this.map.on("move", () => {
-            this.onMove();
-        });
+        this.map.on("move", () => this.onMove());
+        this.map.on("moveend", () => this.onMoveEnd());
 
-        this.map.on("zoom", () => {
-            this.onZoom();
-        });
+        this.map.on("zoom", () => this.onZoom());
+        this.map.on("zoomend", () => this.onZoomEnd());
     }
 
     beforeDestroy(): void {

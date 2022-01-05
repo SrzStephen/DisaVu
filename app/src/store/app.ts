@@ -12,7 +12,10 @@ import {
 
 import store from "@/store";
 
-import {} from "@/models";
+import {
+    IDisaster,
+    Uuid,
+} from "@/models";
 
 VuexModuleDecoratorsConfig.rawError = true;
 
@@ -23,6 +26,26 @@ VuexModuleDecoratorsConfig.rawError = true;
     name: "app",
 })
 export class AppModule extends VuexModule {
+    disasters: IDisaster[] = [
+        {
+            id: "886cc6b1-2951-4e7d-ad94-dedff09e22ef" as Uuid,
+            name: "Hurricane Harvey",
+            center: {
+                lat: 29.76927046175237,
+                lng: -95.48923259304139,
+            },
+        },
+        {
+            id: "e2f796fe-8ec6-4c2d-b8b6-c6c4597ced16" as Uuid,
+            name: "Palu Tsunami",
+            center: {
+                lat: -0.7902744312373666,
+                lng: 119.7995020190507,
+            },
+        },
+    ];
+    selectedDisaster: IDisaster | null = this.disasters[0];
+
     @Mutation
     initializeStore(): void {
         //
@@ -31,5 +54,10 @@ export class AppModule extends VuexModule {
     @Mutation
     uninitializeStore(): void {
         //
+    }
+
+    @Mutation
+    setSelectedDisaster(disaster: IDisaster | null): void {
+        this.selectedDisaster = disaster;
     }
 }
