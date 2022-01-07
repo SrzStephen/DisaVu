@@ -26,6 +26,18 @@
                 <v-btn fab
                        elevation="0"
                        style="border: 2px solid !important;"
+                       :color="showAfterLayer ? 'accent' : 'disabled'"
+                       :class="{ 'map-option-inactive': !showAfterLayer }"
+                       @click="onToggleLayers">
+                    <v-icon large>
+                        mdi-flash-alert
+                    </v-icon>
+                </v-btn>
+            </v-col>
+            <v-col cols="12">
+                <v-btn fab
+                       elevation="0"
+                       style="border: 2px solid !important;"
                        :color="showHeatmap ? 'accent' : 'disabled'"
                        :class="{ 'map-option-inactive': !showHeatmap }"
                        @click="onToggleHeatmap">
@@ -97,6 +109,7 @@ export default class HomeView extends Vue {
 
     @Ref("map") private map!: Map;
 
+    private showAfterLayer = true;
     private showHeatmap = false;
     private showDamagePolygons = false;
 
@@ -127,6 +140,11 @@ export default class HomeView extends Vue {
 
     private onViewChanged() {
         this.updateRoute(this.map.getView());
+    }
+
+    private onToggleLayers() {
+        this.showAfterLayer = !this.showAfterLayer;
+        this.map.visibleLayers(this.showAfterLayer ? "after" : "before");
     }
 
     private onToggleHeatmap() {
