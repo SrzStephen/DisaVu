@@ -25,6 +25,7 @@ export default new Vuetify({
 
                 text: "#333",
                 card: "#f9faff",
+                disabled: "#ddd",
             },
         },
     },

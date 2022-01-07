@@ -9,6 +9,44 @@
         <Map ref="map"
              style="z-index: 0"
              @view-change="onViewChanged" />
+
+        <v-card outlined
+                class="map-stats-container">
+            <v-card-text>
+                <v-row dense>
+                    <v-col cols="12">
+                        STATS
+                    </v-col>
+                </v-row>
+            </v-card-text>
+        </v-card>
+
+        <v-row dense class="map-options-container">
+            <v-col cols="12">
+                <v-btn fab
+                       elevation="0"
+                       style="border: 2px solid !important;"
+                       :color="showHeatmap ? 'accent' : 'disabled'"
+                       :class="{ 'map-option-inactive': !showHeatmap }"
+                       @click="onToggleHeatmap">
+                    <v-icon large>
+                        mdi-dots-hexagon
+                    </v-icon>
+                </v-btn>
+            </v-col>
+            <v-col cols="12">
+                <v-btn fab
+                       elevation="0"
+                       style="border: 2px solid !important;"
+                       :color="showDamagePolygons ? 'accent' : 'disabled'"
+                       :class="{ 'map-option-inactive': !showDamagePolygons }"
+                       @click="onToggleDamagePolygons">
+                    <v-icon large>
+                        mdi-vector-polygon
+                    </v-icon>
+                </v-btn>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 
@@ -25,10 +63,14 @@ import {
 import { getModule } from "vuex-module-decorators";
 import { AppModule } from "@/store/app";
 
+import {
+    NavigationGuardNext,
+    Route,
+} from "vue-router";
+
 import { IDisasterZone } from "@/models";
 
 import Map, { IViewOptions } from "@/ui/components/Map.vue";
-import { NavigationGuardNext, Route } from "vue-router";
 
 function extractMapViewOptions(text: string): IViewOptions | null {
     const matches = /@(-?\d+(\.\d+)?),(-?\d+(\.\d+)?),(\d+(\.\d+)?)z/.exec(text);
@@ -54,6 +96,9 @@ export default class HomeView extends Vue {
     private readonly app = getModule(AppModule);
 
     @Ref("map") private map!: Map;
+
+    private showHeatmap = false;
+    private showDamagePolygons = false;
 
     private updateRoute(view: IViewOptions) {
         const latitude = view.center.lat.toFixed(7);
@@ -84,6 +129,14 @@ export default class HomeView extends Vue {
         this.updateRoute(this.map.getView());
     }
 
+    private onToggleHeatmap() {
+        this.showHeatmap = !this.showHeatmap;
+    }
+
+    private onToggleDamagePolygons() {
+        this.showDamagePolygons = !this.showDamagePolygons;
+    }
+
     @Watch("app.selectedDisasterZone")
     onDisasterZoneSelected(disasterZone: IDisasterZone | null): void {
         if(disasterZone) {
@@ -105,3 +158,29 @@ export default class HomeView extends Vue {
 }
 
 </script>
+
+<style lang="scss" scoped>
+
+$side-offset: 20px;
+
+.map-stats-container {
+    position: absolute;
+    left: $side-offset;
+    bottom: $side-offset;
+
+    background-color: rgba(white, 0.8) !important;
+}
+
+.map-options-container {
+    position: absolute;
+    right: $side-offset;
+    bottom: $side-offset;
+
+    text-align: end;
+}
+
+.map-option-inactive {
+    opacity: 0.6;
+}
+
+</style>

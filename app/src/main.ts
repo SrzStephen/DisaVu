@@ -12,6 +12,8 @@ import vuetify from "@/plugins/vuetify";
 import "@/plugins/vue-class-component";
 import "@/plugins/leaflet";
 
+import "@/styles/app.scss";
+
 Vue.config.productionTip = false;
 
 new Vue({
