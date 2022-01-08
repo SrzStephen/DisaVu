@@ -34,13 +34,13 @@ export default class Map extends Vue {
     private map!: L.Map;
 
     private beforeLayers = [
-        L.tileLayer("http://159.223.58.255:5000/singleband/before/{z}/{x}/{y}.png?colormap=greys&stretch_range=[2,205]", {
+        L.tileLayer("http://159.223.58.255:5000/rgb/before/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]", {
             attribution: "&copy; <a href=\"https://www.maxar.com/open-data\">Maxar</a>",
         }),
     ];
 
     private afterLayers = [
-        L.tileLayer("http://159.223.58.255:5000/singleband/after/{z}/{x}/{y}.png?colormap=greys&stretch_range=[2,205]", {
+        L.tileLayer("http://159.223.58.255:5000/rgb/after/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]", {
             attribution: "&copy; <a href=\"https://www.maxar.com/open-data\">Maxar</a>",
         }),
     ];

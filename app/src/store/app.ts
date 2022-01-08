@@ -28,6 +28,14 @@ VuexModuleDecoratorsConfig.rawError = true;
 export class AppModule extends VuexModule {
     disasterZones: IDisasterZone[] = [
         {
+            id: "83c6f91d-7c3a-4a43-83f3-9f3541dc6441" as Uuid,
+            name: "Oman",
+            center: {
+                lat: 23.5909276,
+                lng: 58.5182752,
+            },
+        },
+        {
             id: "886cc6b1-2951-4e7d-ad94-dedff09e22ef" as Uuid,
             name: "Hurricane Harvey",
             center: {
