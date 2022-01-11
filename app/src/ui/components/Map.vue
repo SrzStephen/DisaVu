@@ -12,6 +12,7 @@
 <script lang="ts">
 
 import * as L from "leaflet";
+import wicket from "wicket";
 
 import {
     Component,
@@ -20,6 +21,8 @@ import {
 } from "vue-property-decorator";
 
 import { ILatLng } from "@/models";
+
+import { TEST_POLYGON_DATA } from "@/store/test-polygon-data";
 
 export interface IViewOptions {
     center: ILatLng;
@@ -93,6 +96,8 @@ export default class Map extends Vue {
     mounted(): void {
         this.map = L.map(this.mapRef).setView([-31.9658588, 115.8871002], 12);
 
+        L.control.scale().addTo(this.map);
+
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
         }).addTo(this.map);
@@ -104,6 +109,16 @@ export default class Map extends Vue {
 
         this.map.on("zoom", () => this.onZoom());
         this.map.on("zoomend", () => this.onZoomEnd());
+
+        const wkt = new wicket.Wkt();
+        for(const polygonData of TEST_POLYGON_DATA) {
+            const polygon = wkt.read(polygonData.poly);
+            const coordinates = polygon.components[0].map((c: any) => ([c.y, c.x]));
+
+            L.polygon(coordinates, {
+                color: polygonData.damaged ? "red" : "green",
+            }).addTo(this.map);
+        }
     }
 
     beforeDestroy(): void {
@@ -118,7 +133,6 @@ export default class Map extends Vue {
 .map {
     display: block;
     width: 100%;
-    //height: 400px;
     height: 100%;
 }
 
