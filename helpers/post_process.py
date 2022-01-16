@@ -85,7 +85,7 @@ def pix_poly_to_latlon_pol(transform: CoordinateTransformation, geo_matrix: List
 
 # For testing purposes with Rico.
 def list_of_polys_to_geojson(out_file_name: str, polys: List[Polygon]) -> None:
-    print(geopandas.GeoSeries(polys[0]).__geo_interface__)
+    print(geopandas.GeoSeries(polys).__geo_interface__)
 
 
 def test_png_to_latlon():
