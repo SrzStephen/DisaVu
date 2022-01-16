@@ -83,7 +83,6 @@ def generate_mask_for_image(src_geo: Union[str, Path], src_tif: str, dst_file: s
         mask_form = np.where(mask_form == 0, fbc_mask['contact'] * 2, mask_form)
         mask_form = np.where(mask_form == 0, fbc_mask['footprint']* 3, mask_form)
         Image.fromarray(mask_form).save(dst_file)
-        #matplotlib.image.imsave(dst_file, mask_form)
         return True
     except ValueError:
         return False

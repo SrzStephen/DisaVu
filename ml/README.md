@@ -12,7 +12,6 @@ Realistically this solution was a culmination of 3 challenges on the devpost
 
 
 
-
 ## The general concept
 Before getting into the technical details of this, here's the general gist of the inference stages of this:
 
@@ -76,13 +75,34 @@ Probably worth doing a few things for this section:
 ### Model 2: Damage Detection
 
 #### Training Data
-Training data 
+We use the [XView2 dataset](https://xview2.org/dataset) which is described on [arxiv](https://arxiv.org/abs/1911.09296).
+
+This data is available under a [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) licence.
+
+This dataset was generated from [Maxar Open Data Program](https://www.digitalglobe.com/ecosystem/open-data).
+
+For our purposes we only focused on Hurricanes, Monsoons, Tornado's. which means we have data from
+** TODO: Check Monsoon, Get Countries
+* Hurricane Michael Oct 7-16, 2018
+* Hurricane Florence Sep 10-19, 2018
+* Hurricane Harvey Aug 17 - Sep 2, 2017
+* Hurricane Matthew Sep 28 - Oct 10, 2016
+* Monsoon in Nepal, India, Bangladesh Jul - Sep, 2017 
+* Moore, OK Tornado May 20, 2013
+* Tuscaloosa, AL Tornado Apr 27, 2011 
+* Joplin, MO Tornado May 22, 2011 
+
 
 #### Data Prep
+Take the image, segment it out to only contain that building.
+![](docs/damaged_undamaged.png)
+
 
 
 #### Results
+Recall, precision, accuracy tensorboard
 
+Show on map
 
 
 ## Inference
@@ -97,20 +117,17 @@ Two GeoTIFFs are trimmed into areas of interest where they both intersect, and s
 (You'd quickly run out of ram trying to run a ML model against a single 1GB+ GeoTIFF), building footprints are identified
 by the first model, then those footprints are cut out from the second image, rated for damaged or not damaged, and then
 the resulting polygons are saved as a JSON object in the form of.
-
+### Note to stephen, now geojson format so that it'll work with tile server
 ```json
-[
-  {
-    "wkt": "Polygon data here",
-    "damaged": true
-  }
-]
+{
+  "TODO:"TODO""
+}
 ```
 This is then used by the frontend
 
 
 
-## Additonal
+## Additional
 
 This could further be augmented by data from the [Open AI Tanzania Building Footprint Segmentation Challenge Dataset](https://competitions.codalab.org/competitions/20100#learn_the_details)
 to include another geographic region, but we avoided doing this to reduce the complexity of the notebook.
@@ -121,3 +138,27 @@ The dataset we use for building detection has levels of damage
 
 
 We've found [This repo](https://github.com/robmarkcole/satellite-image-deep-learning) to be a good source of data sources and ideas.
+
+
+https://aws.amazon.com/blogs/machine-learning/building-training-and-deploying-fastai-models-with-amazon-sagemaker/
+
+
+https://docs.aws.amazon.com/sagemaker/latest/dg/studio-lab-use-manage.html
+https://docs.aws.amazon.com/sagemaker/latest/dg/studio-lab-use-external.html#studio-lab-use-external-add-button
+
+## Learning
+
+* JPG compressions on masks are... not good.
+* Conda, as someone who's more used to pip and pyenv, Conda is great, especially for solving issues of packages needing other dependencies that can be a pain to install like GDAL.
+
+
+# Limitations
+## Data
+We stripped down the data used for this for two reasons
+1. To reduce sizes 
+2. Because while it is posible to use the full 100GB datasets, it's not possible to do this with the 15GB limit on sagemaker studio,
+for this sort of thing you'd want the full blown sagemaker.
+
+## Notebook Complexity
+Putting all of the code in one block was extremly painful to read, we ended up breaking some code out into their own modules (preprocessing, postprocessing)
+
