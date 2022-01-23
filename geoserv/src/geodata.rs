@@ -4,6 +4,7 @@
  */
 
 use std::collections::HashMap;
+use std::path::Path;
 
 use geojson::Feature;
 
@@ -69,8 +70,9 @@ impl GeoIndexBuilder {
         }
     }
 
-    pub fn add_features_from_file(self) -> Self {
-        todo!()
+    pub fn add_features_from_file<P: AsRef<Path>>(self, _path: P) -> Self {
+        // TODO: IMPLEMENT.
+        self
     }
 
     pub fn build(mut self) -> GeoIndex {

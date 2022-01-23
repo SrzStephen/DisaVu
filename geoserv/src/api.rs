@@ -3,6 +3,7 @@
  * Copyright (c) 2022 SilentByte <https://silentbyte.com/>
  */
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use actix_web::{
@@ -16,6 +17,8 @@ use serde::{
 };
 
 use crate::geodata::GeoIndex;
+
+pub type GeoIndexesData = Arc<HashMap<(String, String), GeoIndex>>;
 
 #[derive(Deserialize, Debug)]
 pub struct ViewportQueryParams {
@@ -41,7 +44,7 @@ pub struct GeoDataResponse {
 }
 
 pub async fn geo_data_route(
-    geo_index: web::Data<Arc<GeoIndex>>,
+    geo_index: web::Data<GeoIndexesData>,
     web::Path((group, name)): web::Path<(String, String)>,
     viewport: web::Query<ViewportQueryParams>,
 ) -> ActixResult<impl Responder> {

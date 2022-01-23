@@ -3,7 +3,7 @@
  * Copyright (c) 2022 SilentByte <https://silentbyte.com/>
  */
 
-use std::sync::Arc;
+use std::collections::HashMap;
 
 use actix_web::{
     web,
@@ -12,7 +12,9 @@ use actix_web::{
 };
 use argh::FromArgs;
 use geoserv::api;
+use geoserv::api::GeoIndexesData;
 use geoserv::geodata::GeoIndexBuilder;
+use glob::glob;
 
 /// GeoServ.
 #[derive(Debug, Clone, FromArgs)]
@@ -30,8 +32,50 @@ struct Args {
     data_dir: String,
 }
 
+fn build_geo_indexes_from_directory_structure(args: &Args) -> anyhow::Result<GeoIndexesData> {
+    let pattern = std::path::Path::new(&args.data_dir).join("*/*.geojson");
+    let pattern = pattern
+        .to_str()
+        .ok_or(anyhow::anyhow!("Failed to expand glob pattern"))?
+        .into();
+
+    let mut geo_indexes = HashMap::new();
+
+    for entry in glob(pattern)? {
+        let entry = entry?;
+        let path = entry.as_path();
+
+        log::info!("Parsing {}", path.display());
+
+        let group = path
+            .parent()
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned();
+
+        let name = path
+            .file_stem()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned();
+
+        geo_indexes.insert(
+            (group, name),
+            GeoIndexBuilder::new()
+                .add_features_from_file(&path)
+                .build(),
+        );
+    }
+
+    Ok(GeoIndexesData::new(geo_indexes))
+}
+
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     env_logger::init_from_env(
         env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "INFO"),
     );
@@ -39,7 +83,7 @@ async fn main() -> std::io::Result<()> {
     let args: Args = argh::from_env();
     let bind_address = format!("{}:{}", args.hostname, args.port);
 
-    let geo_index = Arc::new(GeoIndexBuilder::new().build());
+    let geo_indexes_data = build_geo_indexes_from_directory_structure(&args)?;
 
     log::info!(
         "Starting GeoServ on {}, serving {}",
@@ -49,12 +93,15 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .data(geo_index.clone())
+            .data(geo_indexes_data.clone())
             .service(
                 web::resource("/data/{group}/{name}").route(web::get().to(api::geo_data_route)),
             )
     })
-    .bind(bind_address)?
+    .bind(bind_address)
+    .map_err(|e| anyhow::anyhow!(e))?
     .run()
-    .await
+    .await?;
+
+    Ok(())
 }
