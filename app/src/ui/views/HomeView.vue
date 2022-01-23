@@ -135,6 +135,7 @@ export default class HomeView extends Vue {
     private showDamagePolygons = false;
 
     private amenityCache: L.GeoJSON | null = null;
+    private damagedStructureCache: L.GeoJSON | null = null;
 
     private beforeLayers = [
         L.tileLayer("http://159.223.58.255:5000/rgb/before/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]", {
@@ -194,13 +195,7 @@ export default class HomeView extends Vue {
         const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/houston/amenities", bounds, 300);
 
         const layer = L.geoJSON(features, {
-            // style: feature => {
-            //     return {
-            //
-            //     }
-            // }
             pointToLayer(geoJsonPoint, latlng) {
-                console.log(geoJsonPoint);
                 return L.marker(latlng, {
                     icon: L.icon({
                         iconUrl: outgoing.publicUrl("favicon.ico"),
@@ -214,9 +209,30 @@ export default class HomeView extends Vue {
         this.amenityCache = layer;
     }
 
+    private async updateDamagedStructures() {
+        if(this.getView().zoom < 14) {
+            this.damagedStructureCache?.remove();
+            return;
+        }
+
+        const bounds = this.getBounds();
+        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-damaged", bounds, 300);
+
+        const layer = L.geoJSON(features, {
+            style: {
+                color: this.$vuetify.theme.currentTheme.error?.toString(),
+            },
+        }).addTo(this.map);
+
+        this.damagedStructureCache?.remove();
+        this.damagedStructureCache = layer;
+    }
+
     private onViewChanged() {
         this.updateRoute(this.getView());
+
         this.updateAmenities();
+        this.updateDamagedStructures();
     }
 
     private onToggleLayers() {
