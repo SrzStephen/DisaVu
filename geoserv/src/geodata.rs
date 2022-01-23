@@ -4,15 +4,15 @@
  */
 
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
-
-use geojson::Feature;
 
 use crate::kdbush::KDBush;
 
 pub struct GeoIndex {
     index: KDBush,
-    data: HashMap<usize, Feature>,
+    data: HashMap<usize, geojson::Feature>,
 }
 
 impl std::fmt::Debug for GeoIndex {
@@ -34,7 +34,7 @@ impl GeoIndex {
         sw_lat: f64,
         sw_lng: f64,
         limit: usize,
-    ) -> Vec<&Feature> {
+    ) -> Vec<&geojson::Feature> {
         let mut unique_features = HashMap::new();
         self.index
             .range_with_predicate(sw_lng, sw_lat, ne_lng, ne_lat, |id| {
@@ -45,11 +45,7 @@ impl GeoIndex {
                 unique_features.len() < limit
             });
 
-        unique_features
-            .values()
-            .take(limit)
-            .cloned()
-            .collect()
+        unique_features.values().take(limit).cloned().collect()
     }
 
     pub fn len(&self) -> usize {
@@ -62,6 +58,7 @@ const DEFAULT_NODE_SIZE: u8 = 64;
 #[derive(Debug)]
 pub struct GeoIndexBuilder {
     geo_index: GeoIndex,
+    auto_index_counter: usize,
 }
 
 impl GeoIndexBuilder {
@@ -71,12 +68,52 @@ impl GeoIndexBuilder {
                 index: KDBush::new(0, DEFAULT_NODE_SIZE),
                 data: HashMap::new(),
             },
+            auto_index_counter: 0,
         }
     }
 
-    pub fn add_features_from_file<P: AsRef<Path>>(self, _path: P) -> Self {
-        // TODO: IMPLEMENT.
-        self
+    fn generate_id(&mut self) -> usize {
+        let id = self.auto_index_counter;
+        self.auto_index_counter += 1;
+        id
+    }
+
+    fn add_bbox_points(&mut self, id: usize, bbox: &geojson::Bbox) {
+        for point in bbox.chunks_exact(2) {
+            self.geo_index.index.add_point(id, point[1], point[0]);
+        }
+    }
+
+    fn add_point_points(&mut self, id: usize, point: &geojson::PointType) {
+        self.geo_index.index.add_point(id, point[1], point[0]);
+    }
+
+    pub fn add_features_from_file(mut self, path: &Path) -> anyhow::Result<Self> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let geo_data: geojson::GeoJson = serde_json::from_reader(reader)?;
+
+        let feature_collection = match geo_data {
+            geojson::GeoJson::FeatureCollection(fc) => fc,
+            _ => anyhow::bail!("{} does not contain a feature collection", path.display()),
+        };
+
+        for feature in feature_collection.features {
+            let id = self.generate_id();
+
+            if let Some(bbox) = &feature.bbox {
+                self.add_bbox_points(id, &bbox);
+            } else {
+                match &feature.geometry.as_ref().unwrap().value {
+                    geojson::Value::Point(point) => self.add_point_points(id, &point),
+                    _ => anyhow::bail!("{} contains an unsupported feature type", path.display()),
+                };
+            }
+
+            self.geo_index.data.insert(id, feature);
+        }
+
+        Ok(self)
     }
 
     pub fn build(mut self) -> GeoIndex {

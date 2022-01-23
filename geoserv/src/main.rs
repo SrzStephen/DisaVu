@@ -57,18 +57,11 @@ fn build_geo_indexes_from_directory_structure(args: &Args) -> anyhow::Result<Geo
             .unwrap()
             .to_owned();
 
-        let name = path
-            .file_stem()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_owned();
+        let name = path.file_stem().unwrap().to_str().unwrap().to_owned();
 
         geo_indexes.insert(
             (group, name),
-            GeoIndexBuilder::new()
-                .add_features_from_file(&path)
-                .build(),
+            GeoIndexBuilder::new().add_features_from_file(path)?.build(),
         );
     }
 
@@ -84,13 +77,13 @@ async fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
     let bind_address = format!("{}:{}", args.hostname, args.port);
 
-    let geo_indexes_data = build_geo_indexes_from_directory_structure(&args)?;
-
     log::info!(
         "Starting GeoServ on {}, serving {}",
         bind_address,
         args.data_dir
     );
+
+    let geo_indexes_data = build_geo_indexes_from_directory_structure(&args)?;
 
     log::info!("The following geospatial data is available:");
     geo_indexes_data
@@ -102,9 +95,7 @@ async fn main() -> anyhow::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(geo_indexes_data.clone())
-            .service(
-                web::resource("/data/{group}/{name}").route(web::get().to(api::geo_data_route)),
-            )
+            .service(web::resource("/geo/{group}/{name}").route(web::get().to(api::geo_data_route)))
     })
     .bind(bind_address)
     .map_err(|e| anyhow::anyhow!(e))?
