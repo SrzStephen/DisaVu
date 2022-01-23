@@ -37,7 +37,7 @@ impl GeoIndex {
     ) -> Vec<&geojson::Feature> {
         let mut unique_features = HashMap::new();
         self.index
-            .range_with_predicate(sw_lng, sw_lat, ne_lng, ne_lat, |id| {
+            .range_with_predicate(sw_lat, sw_lng, ne_lat, ne_lng, |id| {
                 unique_features
                     .entry(id)
                     .or_insert(self.data.get(&id).unwrap());
