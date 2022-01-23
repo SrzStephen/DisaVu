@@ -185,6 +185,7 @@ export default class HomeView extends Vue {
         }
     }
 
+    // TODO: Change URL depending on selected disaster.
     private async updateAmenities() {
         if(this.getView().zoom < 14) {
             this.amenityCache?.remove();
@@ -192,7 +193,7 @@ export default class HomeView extends Vue {
         }
 
         const bounds = this.getBounds();
-        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/houston/amenities", bounds, 300);
+        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/amenities", bounds, 300);
 
         const layer = L.geoJSON(features, {
             pointToLayer(geoJsonPoint, latlng) {
@@ -209,6 +210,7 @@ export default class HomeView extends Vue {
         this.amenityCache = layer;
     }
 
+    // TODO: Change URL depending on selected disaster.
     private async updateDamagedStructures() {
         if(this.getView().zoom < 14) {
             this.damagedStructureCache?.remove();
