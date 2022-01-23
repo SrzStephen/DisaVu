@@ -4,4 +4,5 @@
  */
 
 pub mod api;
+pub mod geodata;
 pub mod kdbush;

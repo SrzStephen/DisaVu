@@ -3,6 +3,8 @@
  * Copyright (c) 2022 SilentByte <https://silentbyte.com/>
  */
 
+use std::sync::Arc;
+
 use actix_web::{
     web,
     Responder,
@@ -12,6 +14,8 @@ use serde::{
     Deserialize,
     Serialize,
 };
+
+use crate::geodata::GeoIndex;
 
 #[derive(Deserialize, Debug)]
 pub struct ViewportQueryParams {
@@ -37,9 +41,11 @@ pub struct GeoDataResponse {
 }
 
 pub async fn geo_data_route(
+    geo_index: web::Data<Arc<GeoIndex>>,
     web::Path((group, name)): web::Path<(String, String)>,
     viewport: web::Query<ViewportQueryParams>,
 ) -> ActixResult<impl Responder> {
+    println!("{:?}", geo_index);
     println!("{}/{} {}", group, name, viewport);
     Ok(web::Json(GeoDataResponse {}))
 }

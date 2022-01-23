@@ -3,6 +3,8 @@
  * Copyright (c) 2022 SilentByte <https://silentbyte.com/>
  */
 
+use std::sync::Arc;
+
 use actix_web::{
     web,
     App,
@@ -10,6 +12,7 @@ use actix_web::{
 };
 use argh::FromArgs;
 use geoserv::api;
+use geoserv::geodata::GeoIndexBuilder;
 
 /// GeoServ.
 #[derive(Debug, Clone, FromArgs)]
@@ -36,6 +39,8 @@ async fn main() -> std::io::Result<()> {
     let args: Args = argh::from_env();
     let bind_address = format!("{}:{}", args.hostname, args.port);
 
+    let geo_index = Arc::new(GeoIndexBuilder::new().build());
+
     log::info!(
         "Starting GeoServ on {}, serving {}",
         bind_address,
@@ -43,9 +48,11 @@ async fn main() -> std::io::Result<()> {
     );
 
     HttpServer::new(move || {
-        App::new().service(
-            web::resource("/data/{group}/{name}").route(web::get().to(api::geo_data_route)),
-        )
+        App::new()
+            .data(geo_index.clone())
+            .service(
+                web::resource("/data/{group}/{name}").route(web::get().to(api::geo_data_route)),
+            )
     })
     .bind(bind_address)?
     .run()

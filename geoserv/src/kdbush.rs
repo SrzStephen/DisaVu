@@ -97,7 +97,7 @@ impl KDBush {
     ///
     /// # Arguments
     ///
-    /// * `size_hint` - Number of points to add (maybe 0, if unkown).
+    /// * `size_hint` - Number of points to add (maybe 0, if unknown).
     /// * `node_size` - Size of the KD-tree node.
     pub fn new(size_hint: usize, node_size: u8) -> KDBush {
         KDBush {
@@ -105,6 +105,11 @@ impl KDBush {
             points: Vec::with_capacity(size_hint),
             node_size: node_size,
         }
+    }
+
+    /// Returns the number of stored IDs
+    pub fn len(&self) -> usize {
+        self.ids.len()
     }
 
     /// Add point to index
@@ -116,7 +121,9 @@ impl KDBush {
     /// Build index
     pub fn build_index(&mut self) {
         let size = self.points.len();
-        self.sort_kd(0, size - 1, 0);
+        if size > 0 {
+            self.sort_kd(0, size - 1, 0);
+        }
     }
 
     /// Finds all items within the given bounding box
@@ -136,6 +143,34 @@ impl KDBush {
         F: FnMut(TIndex),
     {
         self.range_idx(
+            minx,
+            miny,
+            maxx,
+            maxy,
+            &mut visitor,
+            0,
+            self.ids.len() - 1,
+            0,
+        );
+    }
+
+    /// Finds items within the given bounding box but stops going deeper down the tree when the visitor returns false.
+    ///
+    /// # Arguments
+    ///
+    /// * `minx`, `miny`, `maxx`, `maxy` - Bounding box
+    /// * `visitor` - Result reader
+    pub fn range_with_predicate<F>(
+        &self,
+        minx: TNumber,
+        miny: TNumber,
+        maxx: TNumber,
+        maxy: TNumber,
+        mut visitor: F,
+    ) where
+        F: FnMut(TIndex) -> bool,
+    {
+        self.range_idx_with_predicate(
             minx,
             miny,
             maxx,
@@ -201,6 +236,71 @@ impl KDBush {
         let gte = if axis == 0 { maxx >= x } else { maxy >= y };
         if gte {
             self.range_idx(
+                minx,
+                miny,
+                maxx,
+                maxy,
+                visitor,
+                m + 1,
+                right,
+                (axis + 1) % 2,
+            );
+        }
+    }
+
+    fn range_idx_with_predicate<F>(
+        &self,
+        minx: TNumber,
+        miny: TNumber,
+        maxx: TNumber,
+        maxy: TNumber,
+        visitor: &mut F,
+        left: TIndex,
+        right: TIndex,
+        axis: usize,
+    ) where
+        F: FnMut(TIndex) -> bool,
+    {
+        if right - left <= self.node_size as usize {
+            for i in left..right + 1 {
+                let x = self.points[i][0];
+                let y = self.points[i][1];
+                if x >= minx && x <= maxx && y >= miny && y <= maxy {
+                    if !visitor(self.ids[i]) {
+                        return;
+                    }
+                }
+            }
+            return;
+        }
+
+        let m = (left + right) >> 1;
+        let x = self.points[m][0];
+        let y = self.points[m][1];
+
+        if x >= minx && x <= maxx && y >= miny && y <= maxy {
+            if !visitor(self.ids[m]) {
+                return;
+            }
+        }
+
+        let lte = if axis == 0 { minx <= x } else { miny <= y };
+        if lte {
+            self.range_idx_with_predicate(
+                minx,
+                miny,
+                maxx,
+                maxy,
+                visitor,
+                left,
+                m - 1,
+                (axis + 1) % 2,
+            );
+        }
+
+        let gte = if axis == 0 { maxx >= x } else { maxy >= y };
+        if gte {
+            self.range_idx_with_predicate(
                 minx,
                 miny,
                 maxx,
@@ -380,6 +480,18 @@ mod tests {
         ];
         let mut result = Vec::new();
         index.range(20.0, 30.0, 50.0, 70.0, |idx| result.push(idx));
+        assert_eq!(expected_ids, result);
+    }
+
+    #[test]
+    fn test_range_with_predicate() {
+        let index = KDBush::create(POINTS, 10);
+        let expected_ids = vec![3, 90, 77, 72, 62, 17, 45, 60];
+        let mut result = Vec::new();
+        index.range_with_predicate(20.0, 30.0, 50.0, 70.0, |idx| {
+            result.push(idx);
+            result.len() < 5
+        });
         assert_eq!(expected_ids, result);
     }
 

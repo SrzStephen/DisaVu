@@ -1,3 +1,4 @@
 
 imports_layout = "Vertical"
 group_imports = "StdExternalCrate"
+chain_width=40
