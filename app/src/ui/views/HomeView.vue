@@ -6,9 +6,9 @@
 <template>
     <v-container fluid fill-height
                  class="pa-0">
-        <Map ref="map"
-             style="z-index: 0"
-             @view-change="onViewChanged" />
+
+        <div ref="map"
+             class="map" />
 
         <v-card outlined
                 class="map-stats-container">
@@ -65,6 +65,8 @@
 <!--suppress JSMethodCanBeStatic, JSUnusedGlobalSymbols -->
 <script lang="ts">
 
+import * as L from "leaflet";
+
 import {
     Component,
     Ref,
@@ -80,9 +82,18 @@ import {
     Route,
 } from "vue-router";
 
-import { IDisasterZone } from "@/models";
+import * as outgoing from "@/router/outgoing";
 
-import Map, { IViewOptions } from "@/ui/components/Map.vue";
+import {
+    IDisasterZone,
+    ILatLng,
+} from "@/models";
+
+interface IViewOptions {
+    center: ILatLng;
+    zoom: number;
+    fly?: boolean;
+}
 
 function extractMapViewOptions(text: string): IViewOptions | null {
     const matches = /@(-?\d+(\.\d+)?),(-?\d+(\.\d+)?),(\d+(\.\d+)?)z/.exec(text);
@@ -99,19 +110,43 @@ function extractMapViewOptions(text: string): IViewOptions | null {
     };
 }
 
-@Component({
-    components: {
-        Map,
-    },
-})
+async function fetchGeoJSON(endpointUrl: string, bounds: [ILatLng, ILatLng], limit: number) {
+    const url = new URL(endpointUrl);
+
+    url.searchParams.append("ne_lat", bounds[0].lat.toString());
+    url.searchParams.append("ne_lng", bounds[0].lng.toString());
+    url.searchParams.append("sw_lat", bounds[1].lat.toString());
+    url.searchParams.append("sw_lng", bounds[1].lng.toString());
+    url.searchParams.append("limit", limit.toString());
+
+    const response = await fetch(url.toString());
+    return await response.json();
+}
+
+@Component
 export default class HomeView extends Vue {
     private readonly app = getModule(AppModule);
 
-    @Ref("map") private map!: Map;
+    @Ref("map") private mapRef!: HTMLElement;
+    private map!: L.Map;
 
     private showAfterLayer = true;
     private showHeatmap = false;
     private showDamagePolygons = false;
+
+    private amenityCache: L.GeoJSON | null = null;
+
+    private beforeLayers = [
+        L.tileLayer("http://159.223.58.255:5000/rgb/before/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]", {
+            attribution: "&copy; <a href=\"https://www.maxar.com/open-data\">Maxar</a>",
+        }),
+    ];
+
+    private afterLayers = [
+        L.tileLayer("http://159.223.58.255:5000/rgb/after/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]", {
+            attribution: "&copy; <a href=\"https://www.maxar.com/open-data\">Maxar</a>",
+        }),
+    ];
 
     private updateRoute(view: IViewOptions) {
         const latitude = view.center.lat.toFixed(7);
@@ -133,18 +168,60 @@ export default class HomeView extends Vue {
         if(this.$route.params.options) {
             const view = extractMapViewOptions(this.$route.params.options);
             if(view) {
-                this.map.setView(view);
+                this.setView(view);
             }
         }
     }
 
+    private visibleLayers(layers: "before" | "after") {
+        this.beforeLayers.forEach(l => l.remove());
+        this.afterLayers.forEach(l => l.remove());
+
+        if(layers === "before") {
+            this.beforeLayers.forEach(l => l.addTo(this.map));
+        } else {
+            this.afterLayers.forEach(l => l.addTo(this.map));
+        }
+    }
+
+    private async updateAmenities() {
+        if(this.getView().zoom < 14) {
+            this.amenityCache?.remove();
+            return;
+        }
+
+        const bounds = this.getBounds();
+        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/houston/amenities", bounds, 300);
+
+        const layer = L.geoJSON(features, {
+            // style: feature => {
+            //     return {
+            //
+            //     }
+            // }
+            pointToLayer(geoJsonPoint, latlng) {
+                console.log(geoJsonPoint);
+                return L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: outgoing.publicUrl("favicon.ico"),
+                        iconSize: [24, 24],
+                    }),
+                });
+            },
+        }).addTo(this.map);
+
+        this.amenityCache?.remove();
+        this.amenityCache = layer;
+    }
+
     private onViewChanged() {
-        this.updateRoute(this.map.getView());
+        this.updateRoute(this.getView());
+        this.updateAmenities();
     }
 
     private onToggleLayers() {
         this.showAfterLayer = !this.showAfterLayer;
-        this.map.visibleLayers(this.showAfterLayer ? "after" : "before");
+        this.visibleLayers(this.showAfterLayer ? "after" : "before");
     }
 
     private onToggleHeatmap() {
@@ -155,10 +232,36 @@ export default class HomeView extends Vue {
         this.showDamagePolygons = !this.showDamagePolygons;
     }
 
+    private getView(): IViewOptions {
+        return {
+            center: this.map.getCenter(),
+            zoom: this.map.getZoom(),
+        };
+    }
+
+    private setView(options: Partial<IViewOptions>) {
+        const center = options.center || this.getView().center;
+        const zoom = options.zoom || this.getView().zoom;
+
+        if(options.fly) {
+            this.map.flyTo(center, zoom);
+        } else {
+            this.map.setView(center, zoom);
+        }
+    }
+
+    private getBounds(): [ILatLng, ILatLng] {
+        const bounds = this.map.getBounds();
+        return [
+            bounds.getNorthEast(),
+            bounds.getSouthWest(),
+        ];
+    }
+
     @Watch("app.selectedDisasterZone")
     onDisasterZoneSelected(disasterZone: IDisasterZone | null): void {
         if(disasterZone) {
-            this.map.setView({
+            this.setView({
                 center: disasterZone.center,
                 zoom: 10,
                 fly: true,
@@ -166,12 +269,29 @@ export default class HomeView extends Vue {
         }
     }
 
+    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext): void {
+        next(vm => (vm as HomeView).navigateToRouteView());
+    }
+
     mounted(): void {
+        this.map = L.map(this.mapRef).setView([-31.9658588, 115.8871002], 12);
+
+        L.control.scale().addTo(this.map);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+        }).addTo(this.map);
+
+        this.visibleLayers("before");
+
+        this.map.on("moveend", () => this.onViewChanged());
+        this.map.on("zoomend", () => this.onViewChanged());
+
         this.navigateToRouteView();
     }
 
-    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext): void {
-        next(vm => (vm as HomeView).navigateToRouteView());
+    beforeDestroy(): void {
+        this.map.remove();
     }
 }
 
@@ -180,6 +300,13 @@ export default class HomeView extends Vue {
 <style lang="scss" scoped>
 
 $side-offset: 20px;
+
+.map {
+    display: block;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+}
 
 .map-stats-container {
     position: absolute;
