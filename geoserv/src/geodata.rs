@@ -51,6 +51,10 @@ impl GeoIndex {
             .cloned()
             .collect()
     }
+
+    pub fn len(&self) -> usize {
+        return self.data.len();
+    }
 }
 
 const DEFAULT_NODE_SIZE: u8 = 64;

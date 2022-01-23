@@ -15,6 +15,7 @@ use geoserv::api;
 use geoserv::api::GeoIndexesData;
 use geoserv::geodata::GeoIndexBuilder;
 use glob::glob;
+use itertools::Itertools;
 
 /// GeoServ.
 #[derive(Debug, Clone, FromArgs)]
@@ -90,6 +91,13 @@ async fn main() -> anyhow::Result<()> {
         bind_address,
         args.data_dir
     );
+
+    log::info!("The following geospatial data is available:");
+    geo_indexes_data
+        .iter()
+        .map(|(k, v)| format!("{}/{}: {} feature(s)", k.0, k.1, v.len()))
+        .sorted()
+        .for_each(|e| log::info!("{}", e));
 
     HttpServer::new(move || {
         App::new()

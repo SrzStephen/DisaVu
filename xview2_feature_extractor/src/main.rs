@@ -23,7 +23,7 @@ use imageproc::drawing::Canvas;
 use rayon::prelude::*;
 use serde::Deserialize;
 
-/// Aviator5G Server.
+/// XView2 Feature Extractor.
 #[derive(Debug, Clone, FromArgs)]
 struct Args {
     /// the labels directory of the XView2 training data.
