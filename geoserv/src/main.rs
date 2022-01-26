@@ -6,7 +6,10 @@
 use std::collections::HashMap;
 
 use actix_cors::Cors;
-use actix_web::middleware::Logger;
+use actix_web::middleware::{
+    Compress,
+    Logger,
+};
 use actix_web::{
     web,
     App,
@@ -98,6 +101,7 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             .wrap(Logger::default())
             .wrap(Cors::default().allow_any_origin())
+            .wrap(Compress::default())
             .data(geo_indexes_data.clone())
             .service(web::resource("/geo/{group}/{name}").route(web::get().to(api::geo_data_route)))
     })
