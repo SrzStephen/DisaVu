@@ -17,5 +17,5 @@ log = "0.4.14"
 serde = "1.0.134"
 serde_json = "1.0.75"
 
-[profile.release]
-lto = true
+# [profile.release]
+# lto = true
