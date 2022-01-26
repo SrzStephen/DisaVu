@@ -134,8 +134,10 @@ export default class HomeView extends Vue {
     private showHeatmap = false;
     private showDamagePolygons = false;
 
+    private detailZoomLevel = 14;
     private amenityCache: L.GeoJSON | null = null;
-    private damagedStructureCache: L.GeoJSON | null = null;
+    private affectedStructureCache: L.GeoJSON | null = null;
+    private unaffectedStructureCache: L.GeoJSON | null = null;
 
     private beforeLayers = [
         L.tileLayer("http://159.223.58.255:5000/rgb/before/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]", {
@@ -187,7 +189,7 @@ export default class HomeView extends Vue {
 
     // TODO: Change URL depending on selected disaster.
     private async updateAmenities() {
-        if(this.getView().zoom < 14) {
+        if(this.getView().zoom <= this.detailZoomLevel) {
             this.amenityCache?.remove();
             return;
         }
@@ -211,14 +213,14 @@ export default class HomeView extends Vue {
     }
 
     // TODO: Change URL depending on selected disaster.
-    private async updateDamagedStructures() {
-        if(this.getView().zoom < 14) {
-            this.damagedStructureCache?.remove();
+    private async updateAffectedStructures() {
+        if(this.getView().zoom <= this.detailZoomLevel) {
+            this.affectedStructureCache?.remove();
             return;
         }
 
         const bounds = this.getBounds();
-        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-damaged", bounds, 300);
+        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-affected", bounds, 2000);
 
         const layer = L.geoJSON(features, {
             style: {
@@ -226,15 +228,36 @@ export default class HomeView extends Vue {
             },
         }).addTo(this.map);
 
-        this.damagedStructureCache?.remove();
-        this.damagedStructureCache = layer;
+        this.affectedStructureCache?.remove();
+        this.affectedStructureCache = layer;
+    }
+
+    // TODO: Change URL depending on selected disaster.
+    private async updateUnaffectedStructures() {
+        if(this.getView().zoom <= this.detailZoomLevel) {
+            this.unaffectedStructureCache?.remove();
+            return;
+        }
+
+        const bounds = this.getBounds();
+        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-unaffected", bounds, 2000);
+
+        const layer = L.geoJSON(features, {
+            style: {
+                color: this.$vuetify.theme.currentTheme.success?.toString(),
+            },
+        }).addTo(this.map);
+
+        this.unaffectedStructureCache?.remove();
+        this.unaffectedStructureCache = layer;
     }
 
     private onViewChanged() {
         this.updateRoute(this.getView());
 
         this.updateAmenities();
-        this.updateDamagedStructures();
+        this.updateAffectedStructures();
+        this.updateUnaffectedStructures();
     }
 
     private onToggleLayers() {
