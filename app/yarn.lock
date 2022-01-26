@@ -9184,11 +9184,6 @@ which@^2.0.1:
   dependencies:
     isexe "^2.0.0"
 
-wicket@^1.3.8:
-  version "1.3.8"
-  resolved "https://registry.yarnpkg.com/wicket/-/wicket-1.3.8.tgz#6ff9810f94ee093310d68f66b208036fdf974dfa"
-  integrity sha512-+UZsrBvp8OI+8PhStpXQw0oJedaCLncZwu7lPdcZ9BpUsyu25rztzHG+IwXGK372nuDGp+Wy4FreM/rzdWYJAg==
-
 word-wrap@~1.2.3:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.3.tgz#610636f6b1f703891bd34771ccb17fb93b47079c"
