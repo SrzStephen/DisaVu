@@ -134,7 +134,7 @@ export default class HomeView extends Vue {
     private showHeatmap = false;
     private showDamagePolygons = false;
 
-    private detailZoomLevel = 14;
+    private detailZoomLevel = 15;
     private amenityCache: L.GeoJSON | null = null;
     private affectedStructureCache: L.GeoJSON | null = null;
     private unaffectedStructureCache: L.GeoJSON | null = null;
@@ -220,7 +220,7 @@ export default class HomeView extends Vue {
         }
 
         const bounds = this.getBounds();
-        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-affected", bounds, 2000);
+        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-affected", bounds, 3000);
 
         const layer = L.geoJSON(features, {
             style: {
@@ -240,7 +240,7 @@ export default class HomeView extends Vue {
         }
 
         const bounds = this.getBounds();
-        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-unaffected", bounds, 2000);
+        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-unaffected", bounds, 3000);
 
         const layer = L.geoJSON(features, {
             style: {
