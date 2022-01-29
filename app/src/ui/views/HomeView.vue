@@ -322,9 +322,13 @@ export default class HomeView extends Vue {
 
     mounted(): void {
         this.map = L.map(this.mapRef, {
-            minZoom: 3,
+            minZoom: 2,
             maxZoom: 18,
-        }).setView([-31.9658588, 115.8871002], 12);
+            maxBounds: [
+                [-90, -180],
+                [90, 180],
+            ],
+        }).setView([20, 0], 3);
 
         L.control.scale().addTo(this.map);
 
