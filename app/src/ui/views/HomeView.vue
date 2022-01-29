@@ -66,6 +66,7 @@
 <script lang="ts">
 
 import * as L from "leaflet";
+import "leaflet.heat";
 
 import {
     Component,
@@ -120,6 +121,11 @@ async function fetchGeoJSON(endpointUrl: string, bounds: [ILatLng, ILatLng], lim
     url.searchParams.append("limit", limit.toString());
 
     const response = await fetch(url.toString());
+    return await response.json();
+}
+
+async function fetchHeatmap(endpointUrl: string) {
+    const response = await fetch(endpointUrl);
     return await response.json();
 }
 
@@ -315,7 +321,10 @@ export default class HomeView extends Vue {
     }
 
     mounted(): void {
-        this.map = L.map(this.mapRef).setView([-31.9658588, 115.8871002], 12);
+        this.map = L.map(this.mapRef, {
+            minZoom: 3,
+            maxZoom: 18,
+        }).setView([-31.9658588, 115.8871002], 12);
 
         L.control.scale().addTo(this.map);
 
@@ -329,6 +338,17 @@ export default class HomeView extends Vue {
         this.map.on("zoomend", () => this.onViewChanged());
 
         this.navigateToRouteView();
+
+        // TODO: Load/hide per disaster.
+        ((async () => {
+            const heatmap = await fetchHeatmap("http://127.0.0.1:8088/geo/vegas/structures-affected/heatmap");
+            (L as any).heatLayer(
+                heatmap, {
+                    radius: 20,
+                    minOpacity: 0.7,
+                },
+            ).addTo(this.map);
+        })());
     }
 
     beforeDestroy(): void {

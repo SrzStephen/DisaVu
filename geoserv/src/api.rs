@@ -37,7 +37,7 @@ impl std::fmt::Display for ViewportQueryParams {
     }
 }
 
-pub async fn geo_data_route(
+pub async fn geo_route(
     geo_index: web::Data<GeoIndexesData>,
     web::Path((group, name)): web::Path<(String, String)>,
     viewport: web::Query<ViewportQueryParams>,
@@ -55,4 +55,15 @@ pub async fn geo_data_route(
         );
 
     Ok(HttpResponse::Ok().json(&features))
+}
+pub async fn geo_heatmap_route(
+    geo_index: web::Data<GeoIndexesData>,
+    web::Path((group, name)): web::Path<(String, String)>,
+) -> ActixResult<impl Responder> {
+    let heatmap = geo_index
+        .get(&(group, name))
+        .ok_or(HttpResponse::NotFound())?
+        .heatmap();
+
+    Ok(HttpResponse::Ok().json(&heatmap))
 }

@@ -103,7 +103,11 @@ async fn main() -> anyhow::Result<()> {
             .wrap(Cors::default().allow_any_origin())
             .wrap(Compress::default())
             .data(geo_indexes_data.clone())
-            .service(web::resource("/geo/{group}/{name}").route(web::get().to(api::geo_data_route)))
+            .service(web::resource("/geo/{group}/{name}").route(web::get().to(api::geo_route)))
+            .service(
+                web::resource("/geo/{group}/{name}/heatmap")
+                    .route(web::get().to(api::geo_heatmap_route)),
+            )
     })
     .bind(bind_address)
     .map_err(|e| anyhow::anyhow!(e))?

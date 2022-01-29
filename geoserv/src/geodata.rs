@@ -10,9 +10,12 @@ use std::path::Path;
 
 use crate::kdbush::KDBush;
 
+pub type GeoPoint = (f64, f64);
+
 pub struct GeoIndex {
     index: KDBush,
     data: HashMap<usize, geojson::Feature>,
+    heatmap: Vec<GeoPoint>,
 }
 
 impl std::fmt::Debug for GeoIndex {
@@ -48,6 +51,10 @@ impl GeoIndex {
         unique_features.values().take(limit).cloned().collect()
     }
 
+    pub fn heatmap(&self) -> &[GeoPoint] {
+        &self.heatmap
+    }
+
     pub fn len(&self) -> usize {
         return self.data.len();
     }
@@ -67,6 +74,7 @@ impl GeoIndexBuilder {
             geo_index: GeoIndex {
                 index: KDBush::new(0, DEFAULT_NODE_SIZE),
                 data: HashMap::new(),
+                heatmap: Vec::new(),
             },
             auto_index_counter: 0,
         }
@@ -79,13 +87,28 @@ impl GeoIndexBuilder {
     }
 
     fn add_bbox_points(&mut self, id: usize, bbox: &geojson::Bbox) {
+        let mut center = (0f64, 0f64);
+        let mut point_counter = 0;
+
         for point in bbox.chunks_exact(2) {
             self.geo_index.index.add_point(id, point[1], point[0]);
+
+            center.0 += point[1];
+            center.1 += point[0];
+            point_counter += 1;
+        }
+
+        if point_counter > 0 {
+            self.geo_index.heatmap.push((
+                center.0 / point_counter as f64,
+                center.1 / point_counter as f64,
+            ));
         }
     }
 
     fn add_point_points(&mut self, id: usize, point: &geojson::PointType) {
         self.geo_index.index.add_point(id, point[1], point[0]);
+        self.geo_index.heatmap.push((point[1], point[0]));
     }
 
     pub fn add_features_from_file(mut self, path: &Path) -> anyhow::Result<Self> {
