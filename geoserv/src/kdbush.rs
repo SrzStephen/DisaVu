@@ -112,6 +112,10 @@ impl KDBush {
         self.ids.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.ids.is_empty()
+    }
+
     /// Add point to index
     pub fn add_point(&mut self, id: usize, x: f64, y: f64) {
         self.points.push([x, y]);
@@ -142,6 +146,10 @@ impl KDBush {
     ) where
         F: FnMut(TIndex),
     {
+        if self.is_empty() {
+            return;
+        }
+
         self.range_idx(
             minx,
             miny,
@@ -170,6 +178,10 @@ impl KDBush {
     ) where
         F: FnMut(TIndex) -> bool,
     {
+        if self.is_empty() {
+            return;
+        }
+
         self.range_idx_with_predicate(
             minx,
             miny,
@@ -193,6 +205,10 @@ impl KDBush {
     where
         F: FnMut(TIndex),
     {
+        if self.is_empty() {
+            return;
+        }
+
         self.within_idx(qx, qy, r, &mut visitor, 0, self.ids.len() - 1, 0);
     }
 
