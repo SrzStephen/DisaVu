@@ -164,8 +164,7 @@ def make_zip(processed_dir: Path, AOI_name: str):
     print(f"making zip {AOI_name}")
     shutil.make_archive(base_name=(processed_dir.parent / AOI_name).__str__(),
                         format='gztar',
-                        root_dir=processed_dir / AOI_name,
-                        base_dir=processed_dir / AOI_name
+                        root_dir=processed_dir / AOI_name
                         )
 
 
