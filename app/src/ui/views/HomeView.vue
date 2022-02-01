@@ -96,6 +96,10 @@ interface IViewOptions {
     fly?: boolean;
 }
 
+function capitalizeString(text: string) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function extractMapViewOptions(text: string): IViewOptions | null {
     const matches = /@(-?\d+(\.\d+)?),(-?\d+(\.\d+)?),(\d+(\.\d+)?)z/.exec(text);
     if(!matches) {
@@ -128,6 +132,37 @@ async function fetchHeatmap(endpointUrl: string) {
     const response = await fetch(endpointUrl);
     return await response.json();
 }
+
+const SUPPORTED_AMENITIES = [
+    "bank",
+    "bus_station",
+    "childcare",
+    "cinema",
+    "clinic",
+    "college",
+    "community_centre",
+    "courthouse",
+    "dentist",
+    "doctors",
+    "ferry_terminal",
+    "fire_station",
+    "fuel",
+    "hospital",
+    "kindergarten",
+    "library",
+    "nursing_home",
+    "pharmacy",
+    "place_of_worship",
+    "police",
+    "post_office",
+    "prep_school",
+    "prison",
+    "public_building",
+    "school",
+    "shelter",
+    "townhall",
+    "university",
+];
 
 @Component
 export default class HomeView extends Vue {
@@ -201,16 +236,33 @@ export default class HomeView extends Vue {
         }
 
         const bounds = this.getBounds();
-        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/amenities", bounds, 300);
+        const features = (await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/amenities", bounds, 10000))
+            .filter((f: any) => SUPPORTED_AMENITIES.includes(f?.properties?.amenity));
 
         const layer = L.geoJSON(features, {
-            pointToLayer(geoJsonPoint, latlng) {
-                return L.marker(latlng, {
+            pointToLayer(point, coordinates) {
+                const amenity = {
+                    name: point.properties.name,
+                    type: point.properties.amenity.split("_").map(capitalizeString).join(" "),
+                    icon: `${point.properties.amenity}.svg`,
+                };
+
+                const tooltip = `${amenity.name} (${amenity.type} @ ${coordinates.lat.toFixed(7)}, ${coordinates.lng.toFixed(7)})`;
+
+                const marker = L.marker(coordinates, {
+                    alt: tooltip,
                     icon: L.icon({
-                        iconUrl: outgoing.publicUrl("favicon.ico"),
-                        iconSize: [24, 24],
+                        iconUrl: outgoing.publicUrl("map/markers/amenities", amenity.icon),
+                        iconSize: [32, 32],
                     }),
                 });
+
+                marker.bindTooltip(tooltip, {
+                    direction: "top",
+                    offset: [0, -24],
+                });
+
+                return marker;
             },
         }).addTo(this.map);
 
