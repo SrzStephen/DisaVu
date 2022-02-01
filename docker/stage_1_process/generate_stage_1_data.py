@@ -195,4 +195,4 @@ if __name__ == "__main__":
         make_zip(processed_dir=processed_folder, AOI_name=tar_gz_stem)
 
         upload_zip_to_s3((processed_folder.parent / tar_gz_stem).absolute().__str__() + '.tar.gz',
-                         'stephenbucketsagemaker', tar_gz_name)
+                         'stephenbucketsagemaker', tar_gz_name) # Todo click
