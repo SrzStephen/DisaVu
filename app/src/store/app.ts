@@ -94,7 +94,17 @@ export class AppModule extends VuexModule {
             heatmapUrl: "http://127.0.0.1:8088/geo/vegas/structures-affected/heatmap",
         },
     ];
-    selectedDisasterZone: IDisasterZone | null = this.disasterZones[0];
+
+    selectedDisasterZone: IDisasterZone | null = this.defaultDisasterZone();
+
+    private defaultDisasterZone(): IDisasterZone | null {
+        const id = localStorage.getItem("selected-disaster-zone");
+        if(!id) {
+            return this.disasterZones[0];
+        }
+
+        return this.disasterZones.find(dz => dz.id === id) || this.disasterZones[0] || null;
+    }
 
     @Mutation
     initializeStore(): void {
@@ -109,5 +119,11 @@ export class AppModule extends VuexModule {
     @Mutation
     setSelectedDisaster(disasterZone: IDisasterZone | null): void {
         this.selectedDisasterZone = disasterZone;
+
+        if(disasterZone) {
+            localStorage.setItem("selected-disaster-zone", disasterZone.id);
+        } else {
+            localStorage.removeItem("selected-disaster-zone");
+        }
     }
 }

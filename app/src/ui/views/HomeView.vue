@@ -195,7 +195,8 @@ export default class HomeView extends Vue {
     private afterLayer: L.TileLayer | null = null;
     private heatmapLayer: L.TileLayer | null = null;
 
-    private updateRoute(view: IViewOptions) {
+    private updateRoute() {
+        const view = this.getView()
         const latitude = view.center.lat.toFixed(7);
         const longitude = view.center.lng.toFixed(7);
         const zoom = view.zoom.toFixed(0);
@@ -344,7 +345,7 @@ export default class HomeView extends Vue {
     }
 
     private onViewChanged() {
-        this.updateRoute(this.getView());
+        this.updateRoute();
 
         this.updateAmenities();
         this.updateAffectedStructures();
