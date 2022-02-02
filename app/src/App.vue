@@ -47,13 +47,44 @@
                 </template>
 
                 <v-list min-width="200">
-                    <v-list-item>
+                    <v-list-item href="https://twitter.com/RicoBeti"
+                                 target="_blank">
                         <v-list-item-icon>
-                            <v-icon>mdi-logout-variant</v-icon>
+                            <v-icon color="#1da1f2">
+                                mdi-twitter
+                            </v-icon>
                         </v-list-item-icon>
                         <v-list-item-content>
                             <v-list-item-title>
-                                Log Out
+                                @RicoBeti
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+
+                    <v-list-item href="https://twitter.com/Phtevem"
+                                 target="_blank">
+                        <v-list-item-icon>
+                            <v-icon color="#1da1f2">
+                                mdi-twitter
+                            </v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-content>
+                            <v-list-item-title>
+                                @Phtevem
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+
+                    <v-list-item href="https://github.com/SrzStephen/BuildingDamage"
+                                 target="_blank">
+                        <v-list-item-icon>
+                            <v-icon color="#333">
+                                mdi-github
+                            </v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-content>
+                            <v-list-item-title>
+                                Source Code
                             </v-list-item-title>
                         </v-list-item-content>
                     </v-list-item>
