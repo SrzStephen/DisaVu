@@ -23,16 +23,20 @@
 
         <v-row dense class="map-options-container">
             <v-col cols="12">
-                <v-btn fab
-                       elevation="0"
-                       style="border: 2px solid !important;"
-                       :color="showAfterLayer ? 'accent' : 'disabled'"
-                       :class="{ 'map-option-inactive': !showAfterLayer }"
-                       @click="onToggleLayers">
-                    <v-icon large>
-                        mdi-flash-alert
-                    </v-icon>
-                </v-btn>
+                <v-badge left bordered overlap
+                         :color="visibleLayer === 'none' ? 'disabled' : visibleLayer === 'before' ? 'success' : 'error'"
+                         :content="visibleLayer">
+                    <v-btn fab
+                           elevation="0"
+                           style="border: 2px solid !important;"
+                           :color="visibleLayer === 'none' ? 'disabled' : visibleLayer === 'before' ? 'success' : 'error'"
+                           :class="{ 'map-option-inactive': visibleLayer === 'none' }"
+                           @click="onToggleLayers">
+                        <v-icon large>
+                            {{ visibleLayer === "after" ? "mdi-flash-alert" : "mdi-flash" }}
+                        </v-icon>
+                    </v-btn>
+                </v-badge>
             </v-col>
             <v-col cols="12">
                 <v-btn fab
@@ -96,6 +100,8 @@ interface IViewOptions {
     fly?: boolean;
 }
 
+type VisibleLayer = "none" | "before" | "after";
+
 function capitalizeString(text: string) {
     return text.charAt(0).toUpperCase() + text.slice(1);
 }
@@ -132,6 +138,12 @@ async function fetchHeatmap(endpointUrl: string) {
     const response = await fetch(endpointUrl);
     return await response.json();
 }
+
+const AMENITY_LIMIT = 5000;
+const AMENITY_ZOOM_LEVEL = 14;
+
+const STRUCTURE_LIMIT = 3000;
+const STRUCTURE_ZOOM_LEVEL = 16;
 
 const SUPPORTED_AMENITIES = [
     "bank",
@@ -171,26 +183,17 @@ export default class HomeView extends Vue {
     @Ref("map") private mapRef!: HTMLElement;
     private map!: L.Map;
 
-    private showAfterLayer = true;
+    private visibleLayer: VisibleLayer = "none";
     private showHeatmap = false;
     private showDamagePolygons = false;
 
-    private detailZoomLevel = 15;
     private amenityCache: L.GeoJSON | null = null;
     private affectedStructureCache: L.GeoJSON | null = null;
     private unaffectedStructureCache: L.GeoJSON | null = null;
 
-    private beforeLayers = [
-        L.tileLayer("http://159.223.58.255:5000/rgb/before/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]", {
-            attribution: "&copy; <a href=\"https://www.maxar.com/open-data\">Maxar</a>",
-        }),
-    ];
-
-    private afterLayers = [
-        L.tileLayer("http://159.223.58.255:5000/rgb/after/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]", {
-            attribution: "&copy; <a href=\"https://www.maxar.com/open-data\">Maxar</a>",
-        }),
-    ];
+    private beforeLayer: L.TileLayer | null = null;
+    private afterLayer: L.TileLayer | null = null;
+    private heatmapLayer: L.TileLayer | null = null;
 
     private updateRoute(view: IViewOptions) {
         const latitude = view.center.lat.toFixed(7);
@@ -217,26 +220,19 @@ export default class HomeView extends Vue {
         }
     }
 
-    private visibleLayers(layers: "before" | "after") {
-        this.beforeLayers.forEach(l => l.remove());
-        this.afterLayers.forEach(l => l.remove());
-
-        if(layers === "before") {
-            this.beforeLayers.forEach(l => l.addTo(this.map));
-        } else {
-            this.afterLayers.forEach(l => l.addTo(this.map));
-        }
-    }
-
-    // TODO: Change URL depending on selected disaster.
     private async updateAmenities() {
-        if(this.getView().zoom <= this.detailZoomLevel) {
+        if(this.getView().zoom < AMENITY_ZOOM_LEVEL) {
             this.amenityCache?.remove();
             return;
         }
 
+        const amenitiesUrl = this.app.selectedDisasterZone?.amenitiesUrl;
+        if(!amenitiesUrl) {
+            return;
+        }
+
         const bounds = this.getBounds();
-        const features = (await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/amenities", bounds, 10000))
+        const features = (await fetchGeoJSON(amenitiesUrl, bounds, AMENITY_LIMIT))
             .filter((f: any) => SUPPORTED_AMENITIES.includes(f?.properties?.amenity));
 
         const layer = L.geoJSON(features, {
@@ -272,13 +268,18 @@ export default class HomeView extends Vue {
 
     // TODO: Change URL depending on selected disaster.
     private async updateAffectedStructures() {
-        if(this.getView().zoom <= this.detailZoomLevel) {
+        if(this.getView().zoom < STRUCTURE_ZOOM_LEVEL) {
             this.affectedStructureCache?.remove();
             return;
         }
 
+        const affectedStructuresUrl = this.app.selectedDisasterZone?.affectedStructuresUrl;
+        if(!affectedStructuresUrl) {
+            return;
+        }
+
         const bounds = this.getBounds();
-        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-affected", bounds, 3000);
+        const features = await fetchGeoJSON(affectedStructuresUrl, bounds, STRUCTURE_LIMIT);
 
         const layer = L.geoJSON(features, {
             style: {
@@ -290,15 +291,19 @@ export default class HomeView extends Vue {
         this.affectedStructureCache = layer;
     }
 
-    // TODO: Change URL depending on selected disaster.
     private async updateUnaffectedStructures() {
-        if(this.getView().zoom <= this.detailZoomLevel) {
+        if(this.getView().zoom < STRUCTURE_ZOOM_LEVEL) {
             this.unaffectedStructureCache?.remove();
             return;
         }
 
+        const unaffectedStructuresUrl = this.app.selectedDisasterZone?.unaffectedStructuresUrl;
+        if(!unaffectedStructuresUrl) {
+            return;
+        }
+
         const bounds = this.getBounds();
-        const features = await fetchGeoJSON("http://127.0.0.1:8088/geo/vegas/structures-unaffected", bounds, 3000);
+        const features = await fetchGeoJSON(unaffectedStructuresUrl, bounds, STRUCTURE_LIMIT);
 
         const layer = L.geoJSON(features, {
             style: {
@@ -310,6 +315,21 @@ export default class HomeView extends Vue {
         this.unaffectedStructureCache = layer;
     }
 
+    private async updateHeatmap() {
+        this.heatmapLayer?.remove();
+
+        const heatmapUrl = this.app.selectedDisasterZone?.heatmapUrl;
+        if(!heatmapUrl) {
+            return;
+        }
+
+        const heatmap = await fetchHeatmap(heatmapUrl);
+        (L as any).heatLayer(heatmap, {
+            radius: 20,
+            minOpacity: 0.7,
+        }).addTo(this.map);
+    }
+
     private onViewChanged() {
         this.updateRoute(this.getView());
 
@@ -319,8 +339,13 @@ export default class HomeView extends Vue {
     }
 
     private onToggleLayers() {
-        this.showAfterLayer = !this.showAfterLayer;
-        this.visibleLayers(this.showAfterLayer ? "after" : "before");
+        if(this.visibleLayer === "none") {
+            this.visibleLayer = "before";
+        } else if(this.visibleLayer === "before") {
+            this.visibleLayer = "after";
+        } else {
+            this.visibleLayer = "none";
+        }
     }
 
     private onToggleHeatmap() {
@@ -357,14 +382,51 @@ export default class HomeView extends Vue {
         ];
     }
 
-    @Watch("app.selectedDisasterZone")
-    onDisasterZoneSelected(disasterZone: IDisasterZone | null): void {
-        if(disasterZone) {
-            this.setView({
-                center: disasterZone.center,
-                zoom: 10,
-                fly: true,
+    @Watch("app.selectedDisasterZone", {immediate: true})
+    private async onDisasterZoneSelected(disasterZone: IDisasterZone | null) {
+        await this.$nextTick();
+
+        this.beforeLayer?.remove();
+        this.afterLayer?.remove();
+
+        this.beforeLayer = null;
+        this.afterLayer = null;
+
+        if(!disasterZone) {
+            return;
+        }
+
+        if(disasterZone.beforeLayer) {
+            this.beforeLayer = this.beforeLayer = L.tileLayer(disasterZone.beforeLayer.urlTemplate, {
+                attribution: disasterZone.beforeLayer.attributionHtml,
             });
+        }
+
+        if(disasterZone.afterLayer) {
+            this.afterLayer = this.afterLayer = L.tileLayer(disasterZone.afterLayer.urlTemplate, {
+                attribution: disasterZone.afterLayer.attributionHtml,
+            });
+        }
+
+        this.updateHeatmap().then();
+        this.onVisibleLayerChanged();
+
+        this.setView({
+            center: disasterZone.center,
+            zoom: 10,
+            fly: true,
+        });
+    }
+
+    @Watch("visibleLayer", {immediate: true})
+    private onVisibleLayerChanged() {
+        this.beforeLayer?.remove();
+        this.afterLayer?.remove();
+
+        if(this.visibleLayer === "before") {
+            this.beforeLayer?.addTo(this.map);
+        } else if(this.visibleLayer === "after") {
+            this.afterLayer?.addTo(this.map);
         }
     }
 
@@ -384,27 +446,17 @@ export default class HomeView extends Vue {
 
         L.control.scale().addTo(this.map);
 
+        // TODO: Check if there are layers available that are better suited, e.g. with highlighted rows.
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
         }).addTo(this.map);
 
-        this.visibleLayers("before");
+        this.visibleLayer = "before";
 
         this.map.on("moveend", () => this.onViewChanged());
         this.map.on("zoomend", () => this.onViewChanged());
 
         this.navigateToRouteView();
-
-        // TODO: Load/hide per disaster.
-        ((async () => {
-            const heatmap = await fetchHeatmap("http://127.0.0.1:8088/geo/vegas/structures-affected/heatmap");
-            (L as any).heatLayer(
-                heatmap, {
-                    radius: 20,
-                    minOpacity: 0.7,
-                },
-            ).addTo(this.map);
-        })());
     }
 
     beforeDestroy(): void {
@@ -437,6 +489,7 @@ $side-offset: 20px;
     position: absolute;
     right: $side-offset;
     bottom: $side-offset;
+    width: 100px;
 
     text-align: end;
 }

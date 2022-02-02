@@ -11,8 +11,23 @@ export interface ILatLng {
     lng: number;
 }
 
+export interface ILayerData {
+    urlTemplate: string;
+    attributionHtml: string;
+}
+
 export interface IDisasterZone {
     id: Uuid;
     name: string;
-    center: ILatLng;
+    center: {
+        lat: number;
+        lng: number;
+        zoom: number;
+    };
+    beforeLayer: ILayerData | null;
+    afterLayer: ILayerData | null;
+    amenitiesUrl: string | null;
+    affectedStructuresUrl: string | null;
+    unaffectedStructuresUrl: string | null;
+    heatmapUrl: string | null;
 }
