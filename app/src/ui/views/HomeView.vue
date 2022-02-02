@@ -54,8 +54,8 @@
                 <v-btn fab
                        elevation="0"
                        style="border: 2px solid !important;"
-                       :color="showDamagePolygons ? 'accent' : 'disabled'"
-                       :class="{ 'map-option-inactive': !showDamagePolygons }"
+                       :color="showStructures ? 'accent' : 'disabled'"
+                       :class="{ 'map-option-inactive': !showStructures }"
                        @click="onToggleDamagePolygons">
                     <v-icon large>
                         mdi-vector-polygon
@@ -139,11 +139,11 @@ async function fetchHeatmap(endpointUrl: string) {
     return await response.json();
 }
 
-const AMENITY_LIMIT = 5000;
+const AMENITY_LIMIT = 4000;
 const AMENITY_ZOOM_LEVEL = 14;
 
-const STRUCTURE_LIMIT = 3000;
-const STRUCTURE_ZOOM_LEVEL = 16;
+const STRUCTURE_LIMIT = 6000;
+const STRUCTURE_ZOOM_LEVEL = 17;
 
 const SUPPORTED_AMENITIES = [
     "bank",
@@ -184,8 +184,8 @@ export default class HomeView extends Vue {
     private map!: L.Map;
 
     private visibleLayer: VisibleLayer = "none";
-    private showHeatmap = false;
-    private showDamagePolygons = false;
+    private showStructures = false;
+    private showHeatmap = true;
 
     private amenityCache: L.GeoJSON | null = null;
     private affectedStructureCache: L.GeoJSON | null = null;
@@ -266,10 +266,14 @@ export default class HomeView extends Vue {
         this.amenityCache = layer;
     }
 
-    // TODO: Change URL depending on selected disaster.
     private async updateAffectedStructures() {
         if(this.getView().zoom < STRUCTURE_ZOOM_LEVEL) {
             this.affectedStructureCache?.remove();
+            return;
+        }
+
+        if(!this.showStructures) {
+            this.unaffectedStructureCache?.remove();
             return;
         }
 
@@ -297,6 +301,11 @@ export default class HomeView extends Vue {
             return;
         }
 
+        if(!this.showStructures) {
+            this.unaffectedStructureCache?.remove();
+            return;
+        }
+
         const unaffectedStructuresUrl = this.app.selectedDisasterZone?.unaffectedStructuresUrl;
         if(!unaffectedStructuresUrl) {
             return;
@@ -318,13 +327,17 @@ export default class HomeView extends Vue {
     private async updateHeatmap() {
         this.heatmapLayer?.remove();
 
+        if(!this.showHeatmap) {
+            return;
+        }
+
         const heatmapUrl = this.app.selectedDisasterZone?.heatmapUrl;
         if(!heatmapUrl) {
             return;
         }
 
         const heatmap = await fetchHeatmap(heatmapUrl);
-        (L as any).heatLayer(heatmap, {
+        this.heatmapLayer = (L as any).heatLayer(heatmap, {
             radius: 20,
             minOpacity: 0.7,
         }).addTo(this.map);
@@ -350,10 +363,22 @@ export default class HomeView extends Vue {
 
     private onToggleHeatmap() {
         this.showHeatmap = !this.showHeatmap;
+        this.updateHeatmap();
     }
 
     private onToggleDamagePolygons() {
-        this.showDamagePolygons = !this.showDamagePolygons;
+        this.showStructures = !this.showStructures;
+
+        if(this.showStructures) {
+            this.setView({
+                ...this.getView(),
+                zoom: Math.max(STRUCTURE_ZOOM_LEVEL, this.map.getZoom()),
+                fly: true,
+            });
+        }
+
+        this.updateAffectedStructures();
+        this.updateUnaffectedStructures();
     }
 
     private getView(): IViewOptions {
