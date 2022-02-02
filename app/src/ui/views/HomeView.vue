@@ -54,6 +54,18 @@
                 <v-btn fab
                        elevation="0"
                        style="border: 2px solid !important;"
+                       :color="showAmenities ? 'accent' : 'disabled'"
+                       :class="{ 'map-option-inactive': !showAmenities }"
+                       @click="onToggleAmenities">
+                    <v-icon large>
+                        mdi-hospital-building
+                    </v-icon>
+                </v-btn>
+            </v-col>
+            <v-col cols="12">
+                <v-btn fab
+                       elevation="0"
+                       style="border: 2px solid !important;"
                        :color="showStructures ? 'accent' : 'disabled'"
                        :class="{ 'map-option-inactive': !showStructures }"
                        @click="onToggleDamagePolygons">
@@ -184,8 +196,10 @@ export default class HomeView extends Vue {
     private map!: L.Map;
 
     private visibleLayer: VisibleLayer = "none";
-    private showStructures = false;
+
     private showHeatmap = true;
+    private showAmenities = true;
+    private showStructures = false;
 
     private amenityCache: L.GeoJSON | null = null;
     private affectedStructureCache: L.GeoJSON | null = null;
@@ -196,7 +210,7 @@ export default class HomeView extends Vue {
     private heatmapLayer: L.TileLayer | null = null;
 
     private updateRoute() {
-        const view = this.getView()
+        const view = this.getView();
         const latitude = view.center.lat.toFixed(7);
         const longitude = view.center.lng.toFixed(7);
         const zoom = view.zoom.toFixed(0);
@@ -223,6 +237,11 @@ export default class HomeView extends Vue {
 
     private async updateAmenities() {
         if(this.getView().zoom < AMENITY_ZOOM_LEVEL) {
+            this.amenityCache?.remove();
+            return;
+        }
+
+        if(!this.showAmenities) {
             this.amenityCache?.remove();
             return;
         }
@@ -365,6 +384,20 @@ export default class HomeView extends Vue {
     private onToggleHeatmap() {
         this.showHeatmap = !this.showHeatmap;
         this.updateHeatmap();
+    }
+
+    private onToggleAmenities() {
+        this.showAmenities = !this.showAmenities;
+
+        if(this.showAmenities) {
+            this.setView({
+                ...this.getView(),
+                zoom: Math.max(AMENITY_ZOOM_LEVEL, this.map.getZoom()),
+                fly: true,
+            });
+        }
+
+        this.updateAmenities();
     }
 
     private onToggleDamagePolygons() {
