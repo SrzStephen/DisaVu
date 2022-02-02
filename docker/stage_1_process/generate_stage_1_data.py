@@ -21,10 +21,10 @@ for folder in [download_folder, processed_folder, unzipped_folder]:
         folder.mkdir(parents=True)
 
 urls = [
-    "AOIs/AOI_2_Vegas/misc/AOI_2_Vegas_Train.tar.gz",
+    #"AOIs/AOI_2_Vegas/misc/AOI_2_Vegas_Train.tar.gz",
     "AOIs/AOI_3_Paris/misc/AOI_3_Paris_Train.tar.gz",
-    "AOIs/AOI_4_Shanghai/misc/AOI_4_Shanghai_Train.tar.gz",
-    "AOIs/AOI_5_Khartoum/misc/AOI_5_Khartoum_Train.tar.gz"
+    #"AOIs/AOI_4_Shanghai/misc/AOI_4_Shanghai_Train.tar.gz",
+    #"AOIs/AOI_5_Khartoum/misc/AOI_5_Khartoum_Train.tar.gz"
 ]
 
 
