@@ -36,6 +36,10 @@ struct Args {
     /// the directory where the GeoJSON files are located.
     #[argh(option)]
     data_dir: String,
+
+    /// the number of worker threads to use.
+    #[argh(option, default = "4")]
+    workers: usize,
 }
 
 fn build_geo_indexes_from_directory_structure(args: &Args) -> anyhow::Result<GeoIndexesData> {
@@ -109,6 +113,7 @@ async fn main() -> anyhow::Result<()> {
                     .route(web::get().to(api::geo_heatmap_route)),
             )
     })
+    .workers(args.workers)
     .bind(bind_address)
     .map_err(|e| anyhow::anyhow!(e))?
     .run()
