@@ -8,11 +8,11 @@
             "zoom": 10
         },
         "beforeLayer": {
-            "urlTemplate": "https://data.disaster-response.silentbyte.com/tiles/rgb/before/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]",
+            "urlTemplate": "https://disavu.silentbyte.com/tiles/rgb/before/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]",
             "attributionHtml": "&copy; <a href=\\\"https://www.maxar.com/open-data\\\">Maxar</a>"
         },
         "afterLayer": {
-            "urlTemplate": "https://data.disaster-response.silentbyte.com/tiles/rgb/after/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]",
+            "urlTemplate": "https://disavu.silentbyte.com/tiles/rgb/after/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]",
             "attributionHtml": "&copy; <a href=\\\"https://www.maxar.com/open-data\\\">Maxar</a>"
         },
         "amenitiesUrl": null,
@@ -60,9 +60,9 @@
         },
         "beforeLayer": null,
         "afterLayer": null,
-        "amenitiesUrl": "https://data.disaster-response.silentbyte.com/geoserv/geo/vegas/amenities",
-        "affectedStructuresUrl": "https://data.disaster-response.silentbyte.com/geoserv/geo/vegas/structures-affected",
-        "unaffectedStructuresUrl": "https://data.disaster-response.silentbyte.com/geoserv/geo/vegas/structures-unaffected",
-        "heatmapUrl": "https://data.disaster-response.silentbyte.com/geoserv/geo/vegas/structures-affected/heatmap"
+        "amenitiesUrl": "https://disavu.silentbyte.com/geoserv/geo/vegas/amenities",
+        "affectedStructuresUrl": "https://disavu.silentbyte.com/geoserv/geo/vegas/structures-affected",
+        "unaffectedStructuresUrl": "https://disavu.silentbyte.com/geoserv/geo/vegas/structures-unaffected",
+        "heatmapUrl": "https://disavu.silentbyte.com/geoserv/geo/vegas/structures-affected/heatmap"
     }
 ]
