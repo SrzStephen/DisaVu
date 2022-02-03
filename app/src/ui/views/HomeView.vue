@@ -10,6 +10,7 @@
         <div ref="map"
              class="map" />
 
+        <!--
         <v-card outlined
                 class="map-stats-container">
             <v-card-text>
@@ -20,6 +21,7 @@
                 </v-row>
             </v-card-text>
         </v-card>
+        -->
 
         <v-row dense class="map-options-container">
             <v-col cols="12">

@@ -13,8 +13,9 @@
                         mdi-handshake
                     </v-icon>
 
-                    <div class="ms-2 text-uppercase">
-                        Disaster Map
+                    <div class="ms-2"
+                         style="font-size: 20px">
+                        DisaVue
                     </div>
                 </v-btn>
             </v-toolbar-items>
