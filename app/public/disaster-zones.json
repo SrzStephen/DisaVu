@@ -1,0 +1,68 @@
+[
+    {
+        "id": "83c6f91d-7c3a-4a43-83f3-9f3541dc6441",
+        "name": "Oman",
+        "center": {
+            "lat": 23.5909276,
+            "lng": 58.5182752,
+            "zoom": 10
+        },
+        "beforeLayer": {
+            "urlTemplate": "https://data.disaster-response.silentbyte.com/tiles/rgb/before/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]",
+            "attributionHtml": "&copy; <a href=\\\"https://www.maxar.com/open-data\\\">Maxar</a>"
+        },
+        "afterLayer": {
+            "urlTemplate": "https://data.disaster-response.silentbyte.com/tiles/rgb/after/{z}/{x}/{y}.png?r=1&r_range=[0,255]&g=2&g_range=[0,255]&b=3&b_range=[0,255]",
+            "attributionHtml": "&copy; <a href=\\\"https://www.maxar.com/open-data\\\">Maxar</a>"
+        },
+        "amenitiesUrl": null,
+        "affectedStructuresUrl": null,
+        "unaffectedStructuresUrl": null,
+        "heatmapUrl": null
+    },
+    {
+        "id": "886cc6b1-2951-4e7d-ad94-dedff09e22ef",
+        "name": "Hurricane Harvey",
+        "center": {
+            "lat": 29.76927046175237,
+            "lng": -95.4892325930414,
+            "zoom": 10
+        },
+        "beforeLayer": null,
+        "afterLayer": null,
+        "amenitiesUrl": null,
+        "affectedStructuresUrl": null,
+        "unaffectedStructuresUrl": null,
+        "heatmapUrl": null
+    },
+    {
+        "id": "e2f796fe-8ec6-4c2d-b8b6-c6c4597ced16",
+        "name": "Palu Tsunami",
+        "center": {
+            "lat": -0.7902744312373666,
+            "lng": 119.7995020190507,
+            "zoom": 10
+        },
+        "beforeLayer": null,
+        "afterLayer": null,
+        "amenitiesUrl": null,
+        "affectedStructuresUrl": null,
+        "unaffectedStructuresUrl": null,
+        "heatmapUrl": null
+    },
+    {
+        "id": "d6be9a72-99d6-4c56-bd7f-f1dba4ba413a",
+        "name": "Vegas",
+        "center": {
+            "lat": 36.1909007,
+            "lng": -115.1270185,
+            "zoom": 10
+        },
+        "beforeLayer": null,
+        "afterLayer": null,
+        "amenitiesUrl": "https://data.disaster-response.silentbyte.com/geoserv/geo/vegas/amenities",
+        "affectedStructuresUrl": "https://data.disaster-response.silentbyte.com/geoserv/geo/vegas/structures-affected",
+        "unaffectedStructuresUrl": "https://data.disaster-response.silentbyte.com/geoserv/geo/vegas/structures-unaffected",
+        "heatmapUrl": "https://data.disaster-response.silentbyte.com/geoserv/geo/vegas/structures-affected/heatmap"
+    }
+]

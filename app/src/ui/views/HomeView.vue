@@ -133,6 +133,11 @@ function extractMapViewOptions(text: string): IViewOptions | null {
     };
 }
 
+async function fetchDisasterZones() {
+    const response = await fetch("disaster-zones.json");
+    return await response.json();
+}
+
 async function fetchGeoJSON(endpointUrl: string, bounds: [ILatLng, ILatLng], limit: number) {
     const url = new URL(endpointUrl);
 
@@ -493,7 +498,7 @@ export default class HomeView extends Vue {
         next(vm => (vm as HomeView).navigateToRouteView());
     }
 
-    mounted(): void {
+    async mounted(): Promise<void> {
         this.map = L.map(this.mapRef, {
             minZoom: 2,
             maxZoom: 18,
@@ -516,6 +521,10 @@ export default class HomeView extends Vue {
         this.map.on("zoomend", () => this.onViewChanged());
 
         this.navigateToRouteView();
+
+        const disasterZones = await fetchDisasterZones();
+        this.app.setDisasterZones(disasterZones);
+        this.app.setDefaultDisasterZone();
     }
 
     beforeDestroy(): void {

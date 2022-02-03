@@ -116,8 +116,8 @@ export default class App extends Vue {
     private readonly app = getModule(AppModule);
 
     private onSelectDisasterZone(disasterZone: IDisasterZone) {
-        this.app.setSelectedDisaster(null);
-        this.app.setSelectedDisaster(disasterZone);
+        this.app.setSelectedDisasterZone(null);
+        this.app.setSelectedDisasterZone(disasterZone);
     }
 
     mounted(): void {
