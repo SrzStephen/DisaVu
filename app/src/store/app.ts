@@ -5,7 +5,6 @@
 
 import {
     config as VuexModuleDecoratorsConfig,
-    Action,
     Module,
     Mutation,
     VuexModule,
@@ -13,10 +12,7 @@ import {
 
 import store from "@/store";
 
-import {
-    IDisasterZone,
-    Uuid,
-} from "@/models";
+import { IDisasterZone } from "@/models";
 
 VuexModuleDecoratorsConfig.rawError = true;
 

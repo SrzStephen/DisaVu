@@ -75,6 +75,11 @@
                 </v-btn>
             </v-col>
         </v-row>
+
+        <v-overlay :value="pending">
+            <v-progress-circular indeterminate
+                                 size="80" />
+        </v-overlay>
     </v-container>
 </template>
 
@@ -196,6 +201,7 @@ const SUPPORTED_AMENITIES = [
 @Component
 export default class HomeView extends Vue {
     private readonly app = getModule(AppModule);
+    private pending = true;
 
     @Ref("map") private mapRef!: HTMLElement;
     private map!: L.Map;
@@ -510,7 +516,6 @@ export default class HomeView extends Vue {
 
         L.control.scale().addTo(this.map);
 
-        // TODO: Check if there are layers available that are better suited, e.g. with highlighted rows.
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
         }).addTo(this.map);
@@ -522,9 +527,13 @@ export default class HomeView extends Vue {
 
         this.navigateToRouteView();
 
-        const disasterZones = await fetchDisasterZones();
-        this.app.setDisasterZones(disasterZones);
-        this.app.setDefaultDisasterZone();
+        try {
+            const disasterZones = await fetchDisasterZones();
+            this.app.setDisasterZones(disasterZones);
+            this.app.setDefaultDisasterZone();
+        } finally {
+            this.pending = false;
+        }
     }
 
     beforeDestroy(): void {
