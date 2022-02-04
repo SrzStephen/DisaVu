@@ -154,11 +154,37 @@ This is then used by the frontend
 
 ### XView2 Feature Extractor
 
+The purpose of XView2 Feature Extractor is to extract the required features from the XView2 Data Set. Essentially, the program takes labels (polygon data) and satellite images as input and then extracts and preprocesses image data for each label (polygon) and stores the results in output images. Those output images are then subsequently for training the machine learning part of the DisaVu system.
+
+TODO: Explain in more detail.
+
+XView2 Feature Extractor has been built using: [Rust](https://www.rust-lang.org).
+
+[More details are available here.](./xview2_feature_extractor/README.md)
+
 
 ### GeoServ
 
+GeoServ is a custom-built solution to serve GeoJSON and heatmap data for use in DisaVu. It supports high-performance geospatial queries using a specific type of [K-d tree](https://en.wikipedia.org/wiki/K-d_tree) to build an index that is optimized for static data. It used used for visualizations in the front-end and is able to serve polygon and point GeoJSON data, as well as generate heatmaps for them.
+
+GeoServ has been built using: [Rust](https://www.rust-lang.org), [Actix Web](https://actix.rs).
+
+[More details are available here.](./geoserv/README.md)
+
 
 ### Web App / Map
+
+The web app is the front-end that is intended to be used by a disaster response team to coordinate actions and allocate resources. The main feature of the app is a dynamic map that visualizes disaster zones by...
+
+- ...showing before/after satellite images,
+- ...highlighting buildings/structures outlines (polygons),
+- ...giving an indication if structures have been damaged,
+- ...rendering a heatmap to show where damage clusters are,
+- ...showing relevant amenities such as schools, universities, hospitals, fire stations, police stations, and more.
+
+The app has been built using: [TypeScript](https://www.typescriptlang.org), [VueJs](https://vuejs.org), [Leaflet](https://leafletjs.com).
+
+[More details are available here.](./app/README.md)
 
 
 ## Additional
@@ -198,6 +224,7 @@ We stripped down the data used for this for two reasons
 
 2. Because while it is posible to use the full 100GB datasets, it's not possible to do this with the 15GB limit on sagemaker studio, for this sort of thing you'd want the full blown sagemaker.
 
+
 #### Notebook Complexity
 
 Putting all of the code in one block was extremly painful to read, we ended up breaking some code out into their own modules (preprocessing, postprocessing).
@@ -207,9 +234,11 @@ Putting all of the code in one block was extremly painful to read, we ended up b
 
 TODO.
 
+
 ## What we learned
 
-TODO.
+- We had the chance to look into how massive amounts of geospatial data can and should be stored, processed, an queried.
+- TODO.
 
 
 ## What's next for DisaVu
