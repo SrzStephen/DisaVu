@@ -15,7 +15,7 @@
 
                     <div class="ms-2"
                          style="font-size: 20px">
-                        DisaVue
+                        DisaVu
                     </div>
                 </v-btn>
             </v-toolbar-items>
