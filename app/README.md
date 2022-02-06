@@ -77,3 +77,24 @@ The JSON file must be an array of objects following this structure:
 | affectedStructuresUrl   | The URL where the polygons for the affected structures can be found. May be `null`.                                                                               |
 | unaffectedStructuresUrl | The URL where the polygons for the unaffected structures can be found. May be `null`.                                                                             |
 | heatmapUrl              | The URL where the heatmap for the disaster can be found. May be `null`.                                                                                           |
+
+
+
+## Terracotta
+
+If you know what a python virtual envrionment is, use it to install terracotta.
+
+If you don't, then don't worry and just install it as you normally would.
+```bash
+sudo apt install python3-pip -y
+pip3 install terracotta
+```
+
+On a beefy server (because this process is very memory intensive) run the stage_3 in data_gen. It will generate a GeoTIFF split into bands in a folder called ```processing```.
+Once this is done:
+
+Optimise your raster with
+```
+preproccess_combined terracotta optimize-rasters geotifs_intermediate/*.tif -o optimized/ --reproject
+terracotta ingest optimized/{name}_band{band}.tif -o a.sqlite
+```
