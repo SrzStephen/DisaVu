@@ -449,9 +449,3 @@ up areas.
 
 - See if it's possible to hook this up automatically on the [AWS SNS topic that sentinel 2 publishes new flyovers
 on](https://registry.opendata.aws/sentinel-2-l2a-cogs/) for automated ingestion of data in known areas of interest.
-
-
-## Installation
-
-* [Running UI Server]()
-
