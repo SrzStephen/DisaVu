@@ -66,7 +66,7 @@ specific direction:
 
 Before getting into the technical details, here is a summary of the inference stages:
 
-1. Get a GEOTIFF of before and after the natural disaster.
+1. Get a GeoTiff of before and after the natural disaster.
 
 2. Feed the before image into the first model to generate building footprint longitude/latitude polygons.
 
@@ -74,15 +74,18 @@ Before getting into the technical details, here is a summary of the inference st
 
 4. Show those results on a map to help establish where has been impacted and where has been impacted the most.
 
-**TODO: RICO IMAGE HERE**
+![aa](docs/ui_example_orleans.png)
 
 ## How we built it
 
 ### Models
 
 The models were trained in [Amazon Sagemaker Studio Lab](https://studiolab.sagemaker.aws/). Library wise, we
-used [FastAI](https://docs.fast.ai/) which builds on top of pytorch to provide some easy to use high level APIs for
+used [FastAI](https://docs.fast.ai/) which builds on top of [Pytorch](https://pytorch.org/) to provide some easy to use high level APIs for
 doing machine learning.
+
+
+A lot of the data manipulation was done with the help of [Solaris](https://github.com/CosmiQ/solaris), [GDAL](https://gdal.org/) and [Shapely](https://pypi.org/project/Shapely/).
 
 #### Model 1: Building detection and masking from satellite imagery
 
@@ -119,8 +122,9 @@ our training data by generating three different masks for the data targets, cont
 buildings and interior of buildings.
 
 This approach seems to have been successful by
-the [winners of the SpaceNet2 Challenge](https://github.com/SpaceNetChallenge/BuildingDetectors_Round2) and we found
-without this step, the bounds between buildings became very difficult to train on.
+the [winners of the SpaceNet2 Challenge](https://github.com/SpaceNetChallenge/BuildingDetectors_Round2), we found
+without this step the bounds between buildings became very difficult to detect, causing it to try to lump buildings 
+together.
 
 ![Mask explanation](docs/mask_prep.png)
 
@@ -129,15 +133,13 @@ directory, which is used to generate the dataset that we use.
 
 ##### Results
 
-![Mask Visual](docs/mask_prep.png)
-
-![Mask Tensorboard](docs/mask_tensorboard.png)
+![Mask Tensorboard](docs/mask_tensorboard.png) #TODO TENSORBOARD
 
 ### Model 2: Damage Detection
 
 #### Training Data
 
-We use the [XView2 dataset](https://xview2.org/dataset) which is described on [arxiv](https://arxiv.org/abs/1911.09296).
+We use the [XView2 dataset](https://xview2.org/dataset) which is described at [arxiv](https://arxiv.org/abs/1911.09296).
 
 We are intentionally not providing a direct link top the download of the unprocessed dataset as the owners of this
 dataset have requested that people visit their page and sign their Terms and Conditions before downloading.
@@ -145,10 +147,12 @@ dataset have requested that people visit their page and sign their Terms and Con
 This data is available under a [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) licence.
 
 This dataset was generated from before and after images provided as part of
-the [Maxar Open Data Program](https://www.digitalglobe.com/ecosystem/open-data).
+the [Maxar Open Data Program](https://www.digitalglobe.com/ecosystem/open-data), showing that releasing this data
+can provide pretty useful benefits.
 
-For our purposes we only focused on Hurricanes, Monsoons, Tornado's. which means we have data from
+For our purposes we only focused on Hurricanes, Monsoons, Tornado's.
 
+This leads to us having data from the following natural disasters in our training set.
 * Hurricane Michael Oct 7-16, 2018
 * Hurricane Florence Sep 10-19, 2018
 * Hurricane Harvey Aug 17 - Sep 2, 2017
@@ -162,22 +166,25 @@ For our purposes we only focused on Hurricanes, Monsoons, Tornado's. which means
 
 For our data prep we wanted to mask out each building individually so that we could then train a single classifier.
 
-When we began training our model, we noticed we got pretty bad results intially so changed a few more things which are
+When we began training our model, we noticed we got pretty bad results initially so changed a few more things which are
 reflected in the provided Jupyter notebooks:
 
 1. We ignore buildings that are smaller than 25*25 total pixels
-2. We discard un-classified data and minorly-damaged data.
+2. We discard un-classified data and minor-damaged data.
 3. We use a binary no-damage, damage label instead of trying to segment it out further.
    ![](docs/damaged_undamaged.png)
 
 #### Results
 
 The model was able to get a reasonably high recall and precision with very few epochs.
+
 ![training_epoch](docs/training_table.png)
 
 ![Confusion Matrix](docs/training_confusion.png)
 
 #### Inference
+
+The inference pipeline looks complicated but can essentially boil down to:
 
 1. Download before and after GeoTiffs
 2. Process them with preprocess.py in ```data_gen``` - This script will create a set of fixed sized tiles.
@@ -190,7 +197,8 @@ The model was able to get a reasonably high recall and precision with very few e
    the after image, and feed it to the building damage model.
 6. Map the polygon back into [EPSG:4326](https://spatialreference.org/ref/epsg/wgs-84/) lat lon pairs.
 
-The output of these lat lon pairs is then fed into the frontend to generate the building polygons and heatmaps.
+The output of these lat lon pairs is then fed into the frontend to generate the building polygons. These polygons are
+then served by the geoserv rust package, generating heatmaps on the fly based on the users view window.
 
 ###### Example of this output
 
@@ -231,6 +239,8 @@ The output of these lat lon pairs is then fed into the frontend to generate the 
   ]
 }
 ```
+
+## Components
 
 ### XView2 Feature Extractor
 
@@ -273,7 +283,31 @@ The app has been built using: [TypeScript](https://www.typescriptlang.org), [Vue
 
 [More details are available here.](./app/README.md)
 
+
+### Notebooks
+
+
+### Data Prep
+A set of data prep scripts for each stage. 
+
+
 ## Challenges we ran into
+
+### The Halariously bad OMAN building damage predictions.
+
+We found that Omans building predictions were fantastic, damage... not so much.
+![oman_blur](docs/oman_blur.png)
+
+
+
+We have two suspicions for why this is the case
+1. The after images are a bit blurry, which we think is leading the model to assume that the building is very damaged
+2. The images in the after dataset are significantly off axis compared to the before images. This is causing it to look
+at the wrong part of the image.
+
+We imagine that this is why the winners of the [xview2 challenge](https://github.com/DIUx-xView/xView2_first_place) chose instead to use a siamese network 
+instead of the approach that we took.
+
 
 ### Do I look like I know what JPG compression is
 
@@ -353,6 +387,7 @@ tmpfs           7.7G     0  7.7G   0% /sys/firmware
 
 Getting all of the pieces working together.
 
+
 In particular we're proud at improving our understanding of Geo Data since for both of us it seems to come up a lot in
 work and private projects.
 
@@ -363,9 +398,16 @@ work and private projects.
 
 ## What's next for DisaVu
 
-TODO.
+Try training the building model on more diverse datasets as its performance seems to be pretty bad in non heavily built
+up areas.
+
+Try a different model network for detecting damage as the current strategy has very obvious limitations
+
+Try seeing if it's possible to hook this up automatically on the [AWS SNS topic that sentinel 2 publishes new flyovers 
+on](https://registry.opendata.aws/sentinel-2-l2a-cogs/) for automated ingestion of data in known areas of interest.
+
 
 ## Installation
 
-* [Running Data Inference]()
 * [Running UI Server]()
+
