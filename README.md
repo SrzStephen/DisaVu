@@ -5,6 +5,13 @@
 &nbsp;
 [![Status](https://img.shields.io/badge/status-live-00B20E.svg?style=for-the-badge)](https://disavu.silentbyte.com)
 
+
+## Links
+
+- Video Presentation: https://www.youtube.com/watch?v=-5hXBvW52yg
+- Submission Page: https://devpost.com/software/disavu
+
+
 ## Sagemaker Notebooks
 
 To run any of these models you will need to install the correct Conda environment.
@@ -429,18 +436,18 @@ It'd be really useful if this got supported in sagemaker studio.
 
 - We learned how to utilize Sagemaker effectively to rapidly develop and prototype sophisticated ML models.
 - We learnt how to deal with GeoTiff data in a way that could be used for Machine Learning.
-- We learnt that once again coordinate systems can be difficult to understand, but when moving from pixel space to image space, the magic word is "GeoMatrix"
-- We learnt that there isn't really a high performant GeoJSON server that's easy to install so @Rico decided to make his own in rust.
+- We learnt that once again coordinate systems can be difficult to understand, but when moving from pixel space to image space, the magic word is "GeoMatrix".
+- We learnt that there isn't really a high performant GeoJSON server that supports geospatial queries so @Rico decided to make his own in Rust.
 
 
 ## What's next for DisaVu
 
-Try training the building model on more diverse datasets as its performance seems to be pretty bad in non heavily built
+- Try training the building model on more diverse datasets as its performance seems to be pretty bad in non heavily built
 up areas.
 
-Try a different model network for detecting damage as the current strategy has very obvious limitations
+- Try a different model network for detecting damage as the current strategy has very obvious limitations.
 
-Try seeing if it's possible to hook this up automatically on the [AWS SNS topic that sentinel 2 publishes new flyovers 
+- See if it's possible to hook this up automatically on the [AWS SNS topic that sentinel 2 publishes new flyovers
 on](https://registry.opendata.aws/sentinel-2-l2a-cogs/) for automated ingestion of data in known areas of interest.
 
 
