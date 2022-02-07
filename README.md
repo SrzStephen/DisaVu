@@ -131,8 +131,16 @@ For the sake of ease of use, you will find the stage_1 data generator in the dat
 directory, which is used to generate the dataset that we use.
 
 ##### Results
+![](docs/stage1_training_loss.png)
 
-![Mask Tensorboard](docs/mask_tensorboard.png) #TODO TENSORBOARD
+![](docs/stage1_valid_loss.png)
+
+Overall the model managed to do a decent job on the validation set. We did find that it tended to clump buildings up a 
+bit more than we would like.
+![](docs/stage1_plots.png)
+
+When we applied this model to real world data we found that it worked best in dense heavy areas and didn't work so 
+well in sparse residential areas.
 
 ### Model 2: Damage Detection
 
@@ -181,6 +189,7 @@ The model was able to get a reasonably high recall and precision with very few e
 
 ![Confusion Matrix](docs/training_confusion.png)
 
+
 #### Inference
 
 The inference pipeline looks complicated but can essentially boil down to:
@@ -198,6 +207,10 @@ The inference pipeline looks complicated but can essentially boil down to:
 
 The output of these lat lon pairs is then fed into the frontend to generate the building polygons. These polygons are
 then served by the geoserv rust package, generating heatmaps on the fly based on the users view window.
+
+
+The results of this are most easy to see when you take a look at the website [DisaVu](https://disavu.silentbyte.com/@29.8905000,-90.0971110,10z)
+and look at the areas where we have run inference on.
 
 ###### Example of this output
 
@@ -294,11 +307,10 @@ A set of data prep scripts for each stage.
 
 ## Challenges we ran into
 
-### The hilariously bad OMAN building damage predictions.
+### The hilariously bad Oman building damage predictions.
 
 We found that Omans building predictions were fantastic, damage... not so much.
 ![oman_blur](docs/oman_blur.png)
-
 
 
 We have two suspicions for why this is the case
@@ -384,6 +396,31 @@ tmpfs           7.7G     0  7.7G   0% /proc/acpi
 tmpfs           7.7G     0  7.7G   0% /sys/firmware
 ```
 
+### Tensorboard support
+At the moment it's not possible to embed a [live tensorboard](https://www.tensorflow.org/tensorboard/tensorboard_in_notebooks) into the Sagemaker Studio Lab notebook with the usual magics
+```text
+%load_ext tensorboard
+%tensorboard --logdir logs
+```
+
+There is the usual workaround of just downloading the generated logfiles, or [uploading them to s3](https://docs.aws.amazon.com/sagemaker/latest/dg/studio-tensorboard.html), but
+it would be really useful to have the live version supported in the jupyter notebook.
+
+Looking at the output of ```ps -aux | grep tensorboard``` the tensorboard process does start up, but the jupyter notebook
+is unable to connect to it, giving a timeout error.
+
+### Pytorch S3 data loader
+We were trying to use the [Amazon S3 Plugin for Pytorch](https://github.com/aws/amazon-s3-plugin-for-pytorch) but as
+best we could tell it wasn't compatible due the compatibility list specifying very specific AMIs
+```text
+CPU: 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.9.0-cpu-py38-ubuntu20.04-v1.1
+GPU: 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.9.0-gpu-py38-cu111-ubuntu20.04-v1.1
+CPU: 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.8.1-cpu-py36-ubuntu18.04-v1.6
+GPU: 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.8.1-gpu-py36-cu111-ubuntu18.04-v1.7
+```
+
+It'd be really useful if this got supported in sagemaker studio.
+
 ## Accomplishments that we're proud of / What we learnt
 
 Getting all of the pieces working together.
@@ -394,8 +431,10 @@ work and private projects.
 
 ## What we learned
 
-- We had the chance to look into how massive amounts of geospatial data can and should be stored, processed, and queried.
-- TODO.
+- We learned how to utilize Sagemaker effectively to rapidly develop and prototype sophisticated ML models.
+- We learnt how to deal with GeoTiff data in a way that could be used for Machine Learning.
+- We learnt that once again coordinate systems are a sick joke by geoscientists to confuse programmers.
+
 
 ## What's next for DisaVu
 
