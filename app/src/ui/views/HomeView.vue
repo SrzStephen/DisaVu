@@ -306,7 +306,7 @@ export default class HomeView extends Vue {
         }
 
         if(!this.showStructures) {
-            this.unaffectedStructureCache?.remove();
+            this.affectedStructureCache?.remove();
             return;
         }
 
