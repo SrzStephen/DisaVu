@@ -295,7 +295,7 @@ A set of data prep scripts for each stage.
 
 ## Challenges we ran into
 
-### The Halariously bad OMAN building damage predictions.
+### The Hilariously bad OMAN building damage predictions.
 
 We found that Omans building predictions were fantastic, damage... not so much.
 ![oman_blur](docs/oman_blur.png)
