@@ -7,9 +7,9 @@
 
 ## Sagemaker Notebooks
 
-To run any of these models you will need to install the correct conda environment.
+To run any of these models you will need to install the correct Conda environment.
 
-You will find the required ml_env_sagemaker file in the ``nbs`` folder. You can run these commands in the sagemaker
+You will find the required ml_env_sagemaker file in the ``nbs`` folder. You can run these commands in the Sagemaker
 terminal.
 
 ```bash
@@ -55,7 +55,7 @@ specific direction:
 
 1. SPB: How might we determine the extent of damage to individual homes in a given disaster-impacted area?
 
-2. ADB: How might we determine the condition of critical infrastructure and prioritise recovery needs after a disaster
+2. ADB: How might we determine the condition of critical infrastructure and prioritize recovery needs after a disaster
    impacts a given area?
 
 3. NASA ESDS: How can we help society respond to natural disasters using Earth Remote Sensing Observations?
@@ -95,13 +95,12 @@ to go from a satellite image of a house to a mask of the buildings.
 
 The loss function we chose is a combination of [Focal loss](https://arxiv.org/pdf/1708.02002.pdf)
 and [Dice loss](https://pubmed.ncbi.nlm.nih.gov/34104926/)
-which [seems to perform well when there is a high input and output balance in segmentation tasks](https://arxiv.org/pdf/1805.02798.pdf)
-.
+which [seems to perform well when there is a high input and output balance in segmentation tasks](https://arxiv.org/pdf/1805.02798.pdf).
 
 #### Training Data
 
 For training data we used data generated as part of
-the [SpaceNet2 Challenge](https://spacenet.ai/spacenet-buildings-dataset-v2),which provides labelled data for 151k
+the [SpaceNet2 Challenge](https://spacenet.ai/spacenet-buildings-dataset-v2),which provides labeled data for 151k
 buildings in Las Vegas, 23k in Paris, 92K in Shanghai and 35K in Khartoum.
 
 This data can be downloaded from the Registry of Open Data on AWS. It's worth pointing out that there is both a public
@@ -113,7 +112,7 @@ aws s3 cp s3://spacenet-dataset/AOIs/AOI_2_Vegas/misc/AOI_2_Vegas_Train.tar.gz .
 aws s3 cp s3://spacenet-dataset/AOIs/AOI_2_Vegas/misc/AOI_2_Vegas_Test_public.tar.gz
 ```
 
-This dataset is licenced under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+This dataset is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ##### Data Prep
 
@@ -144,13 +143,13 @@ We use the [XView2 dataset](https://xview2.org/dataset) which is described at [a
 We are intentionally not providing a direct link top the download of the unprocessed dataset as the owners of this
 dataset have requested that people visit their page and sign their Terms and Conditions before downloading.
 
-This data is available under a [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) licence.
+This data is available under a [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.
 
 This dataset was generated from before and after images provided as part of
 the [Maxar Open Data Program](https://www.digitalglobe.com/ecosystem/open-data), showing that releasing this data
 can provide pretty useful benefits.
 
-For our purposes we only focused on Hurricanes, Monsoons, Tornado's.
+For our purposes we only focused on Hurricanes, Monsoons, and Tornados.
 
 This leads to us having data from the following natural disasters in our training set.
 * Hurricane Michael Oct 7-16, 2018
@@ -170,7 +169,7 @@ When we began training our model, we noticed we got pretty bad results initially
 reflected in the provided Jupyter notebooks:
 
 1. We ignore buildings that are smaller than 25*25 total pixels
-2. We discard un-classified data and minor-damaged data.
+2. We discard unclassified data and minor-damaged data.
 3. We use a binary no-damage, damage label instead of trying to segment it out further.
    ![](docs/damaged_undamaged.png)
 
@@ -293,7 +292,7 @@ A set of data prep scripts for each stage.
 
 ## Challenges we ran into
 
-### The Halariously bad OMAN building damage predictions.
+### The hilariously bad OMAN building damage predictions.
 
 We found that Omans building predictions were fantastic, damage... not so much.
 ![oman_blur](docs/oman_blur.png)
@@ -311,14 +310,14 @@ instead of the approach that we took.
 
 ### Do I look like I know what JPG compression is
 
-We had a problem where pytorch seemed to disagree with the number of labels in our mask before we realised the cause:
+We had a problem where pytorch seemed to disagree with the number of labels in our mask before we realized the cause:
 JPG compression introduced artifacts, these artifacts as different values to the 0,1,2,3 classes that our model was
-expecting were being intepreteted as new classes. The solution? Save your masks as ```.PNG```.
+expecting were being interpreted as new classes. The solution? Save your masks as ```.PNG```.
 
 ### Conda
 
 We'd never used conda before so had some difficulty setting it up properly, in particular getting all of the
-dependencies to resolve nicely. Once we were able to set that up, we realised that it's very useful for reducing issues
+dependencies to resolve nicely. Once we were able to set that up, we realized that it's very useful for reducing issues
 of installing libraries like Cuda, CudaNN and GDAL which normally need libraries installed on your computer which are
 managed outside of python.
 
@@ -329,11 +328,11 @@ We spent a LOT of time trying to get our Geo Projections (Going from one coordin
 ### Clouds
 
 One issue when working with real data is sometimes it isn't what you'd expect. When trying the before/after images, we
-came up against issues with clouds that would obscure the features we were looking to analyise, and often these clouds
+came up against issues with clouds that would obscure the features we were looking to analyze, and often these clouds
 would be interpreted as buildings.
 
 I think in future we should include some cloud images in the training set so that the building detection and damage
-detection models are capable of dealing with them, because right now its behaviour seems to be almost random when it
+detection models are capable of dealing with them, because right now its behavior seems to be almost random when it
 encounters a cloud.
 
 ### Man-made post disaster features
@@ -363,9 +362,9 @@ sagemaker studio session restarts.
 
 ### Make it more clear about the directory structure
 
-We were initially trying to frantically trying to reduce the size of our datasets before realising that the file
+We were initially trying to frantically trying to reduce the size of our datasets before realizing that the file
 structure of Sagemaker Studio meant that there was a non-persistent between session directory, which could be accessed
-by ```/tmp/```. We believe the docs could be clearer in calling this out as a place to tempoarily store files while
+by ```/tmp/```. We believe the docs could be clearer in calling this out as a place to temporarily store files while
 training.
 
 ```
@@ -393,7 +392,7 @@ work and private projects.
 
 ## What we learned
 
-- We had the chance to look into how massive amounts of geospatial data can and should be stored, processed, an queried.
+- We had the chance to look into how massive amounts of geospatial data can and should be stored, processed, and queried.
 - TODO.
 
 ## What's next for DisaVu
