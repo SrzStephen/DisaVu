@@ -285,6 +285,8 @@ The app has been built using: [TypeScript](https://www.typescriptlang.org), [Vue
 
 ### Notebooks
 
+Three notebooks which are used to generate each of the stages of the model and run inference.
+
 
 ### Data Prep
 A set of data prep scripts for each stage. 
