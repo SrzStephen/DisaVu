@@ -5,6 +5,13 @@
 &nbsp;
 [![Status](https://img.shields.io/badge/status-live-00B20E.svg?style=for-the-badge)](https://disavu.silentbyte.com)
 
+
+## Links
+
+- Video Presentation: https://www.youtube.com/watch?v=-5hXBvW52yg
+- Submission Page: https://devpost.com/software/disavu
+
+
 ## Sagemaker Notebooks
 
 To run any of these models you will need to install the correct Conda environment.
