@@ -17,7 +17,7 @@ conda env create -n ml_env_sagemaker python=3.8 -f ml_env_sagemaker.yml
 conda clean -t 
 ```
 
-On your notebooks you will then need to select the ml_env_sagemaker kernel.
+You will then need to select the ml_env_sagemaker kernel in your notebook. This will ensure that you have all the libraries you need.
 
 ### Building FootPrint Model
 
@@ -32,6 +32,7 @@ On your notebooks you will then need to select the ml_env_sagemaker kernel.
 [![Open in SageMaker Studio Lab](https://studiolab.sagemaker.aws/studiolab.svg)](https://studiolab.sagemaker.aws/import/github/SrzStephen/DisaVu/blob/main/nbs/stage_1_building_detect.ipynb)
 
 # DisaVu Disaster Response System
+![DisaVue Page](docs/disavue_page.png)
 
 DisaVu is a disaster response solution that helps direct relief resources to where they are needed most using a
 sophisticated machine learning approach. This repository represents our submission for
@@ -137,6 +138,8 @@ directory, which is used to generate the dataset that we use.
 
 Overall the model managed to do a decent job on the validation set. We did find that it tended to clump buildings up a 
 bit more than we would like.
+
+
 ![](docs/stage1_plots.png)
 
 When we applied this model to real world data we found that it worked best in dense heavy areas and didn't work so 
@@ -179,6 +182,7 @@ reflected in the provided Jupyter notebooks:
 1. We ignore buildings that are smaller than 25*25 total pixels
 2. We discard unclassified data and minor-damaged data.
 3. We use a binary no-damage, damage label instead of trying to segment it out further.
+
    ![](docs/damaged_undamaged.png)
 
 #### Results
@@ -421,19 +425,12 @@ GPU: 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.8.1-gpu-py3
 
 It'd be really useful if this got supported in sagemaker studio.
 
-## Accomplishments that we're proud of / What we learnt
-
-Getting all of the pieces working together.
-
-
-In particular we're proud at improving our understanding of Geo Data since for both of us it seems to come up a lot in
-work and private projects.
-
-## What we learned
+## What we learned/ Are proud of
 
 - We learned how to utilize Sagemaker effectively to rapidly develop and prototype sophisticated ML models.
 - We learnt how to deal with GeoTiff data in a way that could be used for Machine Learning.
-- We learnt that once again coordinate systems are a sick joke by geoscientists to confuse programmers.
+- We learnt that once again coordinate systems can be difficult to understand, but when moving from pixel space to image space, the magic word is "GeoMatrix"
+- We learnt that there isn't really a high performant GeoJSON server that's easy to install so @Rico decided to make his own in rust.
 
 
 ## What's next for DisaVu
