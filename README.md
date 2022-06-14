@@ -407,19 +407,6 @@ tmpfs           7.7G     0  7.7G   0% /proc/acpi
 tmpfs           7.7G     0  7.7G   0% /sys/firmware
 ```
 
-### Tensorboard support
-At the moment it's not possible to embed a [live tensorboard](https://www.tensorflow.org/tensorboard/tensorboard_in_notebooks) into the Sagemaker Studio Lab notebook with the usual magics
-```text
-%load_ext tensorboard
-%tensorboard --logdir logs
-```
-
-There is the usual workaround of just downloading the generated logfiles, or [uploading them to s3](https://docs.aws.amazon.com/sagemaker/latest/dg/studio-tensorboard.html), but
-it would be really useful to have the live version supported in the jupyter notebook.
-
-Looking at the output of ```ps -aux | grep tensorboard``` the tensorboard process does start up, but the jupyter notebook
-is unable to connect to it, giving a timeout error.
-
 ### Pytorch S3 data loader
 We were trying to use the [Amazon S3 Plugin for Pytorch](https://github.com/aws/amazon-s3-plugin-for-pytorch) but as
 best we could tell it wasn't compatible due the compatibility list specifying very specific AMIs
@@ -449,3 +436,14 @@ up areas.
 
 - See if it's possible to hook this up automatically on the [AWS SNS topic that sentinel 2 publishes new flyovers
 on](https://registry.opendata.aws/sentinel-2-l2a-cogs/) for automated ingestion of data in known areas of interest.
+
+## Tensorboard Support
+
+Orginally said something incorrect so putting the correction down here:
+
+At the moment it's not possible to embed a [live tensorboard](https://www.tensorflow.org/tensorboard/tensorboard_in_notebooks) into the Sagemaker Studio Lab notebook with the usual magics
+```text
+%load_ext tensorboard
+%tensorboard --logdir logs
+```
+However it's possible to use the [proxy address](https://docs.aws.amazon.com/sagemaker/latest/dg/studio-tensorboard.html) to access it live.
